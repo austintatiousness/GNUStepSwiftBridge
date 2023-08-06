@@ -14,6 +14,7 @@ struct App {
 	static var window2 = NSWindow()
 
 	static var label = NSLabel()
+	static var button = NSButton()
 	static func main() {
 		print("Hello World Times Two")
 
@@ -25,14 +26,16 @@ struct App {
 		var sharedApp =  forSwift_objcSendMessage(&napClass!.pointee, sel_registerName("sharedApplication"))
 		
 		App.window.orderFront(sender: nil)
-		App.label.setBackgroundColor(NSColor())
+		App.label.setBackgroundColor(NSColor(red: 1.0, green: 1.0, blue: 0.0, alpha: 1.0))
 		App.window.addSubview(App.label)
+		
 
 		App.window2.orderFront(sender: nil)
 		App.window2.setFrameOrigin(NSPoint(x: 300, y: 300))
 		App.window2.setTitle(NSString(string: "Window 2"))
+		App.window2.addSubview(App.button)
 		
-		//App.window2.printWindow()
+		App.window.printWindow()
 		
 
 		//window.setBackgroundColor(NSColor())
