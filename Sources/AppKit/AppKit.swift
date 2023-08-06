@@ -168,12 +168,14 @@ public class NSObjectClass {
 		self._nsclassName = name
 		var cName = name.cString
 		if let superName = superName, var nsClass =  objc_getClass(superName), let cls = object_getClass(nsClass) {
-			//let t: String = nsClass
-			self._nsobjptr = objc_allocateClassPair(cls, &cName, 0)
+			
+			self._nsobjptr = objc_allocateClassPair(cls, name, 0)
+			
+			
 			print("Created \(name) subclass of \(superName)")
 		} else {
 			self._nsobjptr = objc_allocateClassPair(nil, &cName, 0)
-			print("Created \(name) subclass of nothins")
+			print("Created \(name) subclass of nothing")
 		}
 		
 		print(self._nsobjptr == nil ? "NIL!!!" : "NOT NIL :-)")
@@ -187,13 +189,21 @@ public class NSObjectClass {
 	}
 
 	public func register() {
+		
+		if var chars = class_getName(self._nsobjptr!) {
+			let name = String(cString: chars)
+			print("named: \(name)")
+		}
+		
+		
+		
 		print("registering class \(self._nsobjptr)")
 		objc_registerClassPair(self._nsobjptr!)
 		print("registered \(_nsclassName) but got \(objc_getClass(self._nsclassName)) after lookup")
 	}
 
 }
-
+///https://stackoverflow.com/questions/11319170/c-as-principal-class-or-a-cocoa-app-without-objc
 public class AppDelegate: NSObjectGNUStepSwiftBridge {
 	public override var _nsclassName: String {
 		return "AppDelegate"
@@ -211,19 +221,27 @@ public class AppDelegate: NSObjectGNUStepSwiftBridge {
 				print("HELLO WORLD!")
 			}
 			
-			var types = "@".cString
+			var types = "i@:@"
 			print("about to class_addMethod 2")
-			class_addMethod(ptr, sel_registerName("applicationDidFinishLaunching:"),unsafeBitCast(didFinishLaunchingForwarder, to: IMP.self), "@")
+			class_addMethod(ptr, sel_registerName("applicationDidFinishLaunching:"),unsafeBitCast(didFinishLaunchingForwarder, to: IMP.self), types)
 			print("just class_addMethod 3")
 		}
 
 		objcClass.register()
 		
+		//let  nsWindowClass =  objc_getClass("NSWindow")
+		//var allocatedObject = forSwift_objcSendMessage(&nsWindowClass!.pointee, sel_registerName("alloc"))
+		
+		
 		print("AppDelegate 1 \(self._nsclassName)")
-		var nclass = objc_lookUpClass("AppDelegate")
+		var nclass = objc_getClass("AppDelegate")
 		print("AppDelegate 2 \(nclass)")
+		
+		let x = objc_msg_lookup(&nclass!.pointee, sel_registerName("alloc"))
+		print("AppDelegate x = \(x)")
+		
 		var initalizedObject = forSwift_objcSendMessage(&nclass!.pointee, sel_registerName("alloc"))
-		print("AppDelegate 3")
+		print("AppDelegate 3 \(initalizedObject)")
 		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_registerName("init"))
 		print("AppDelegate 4")
 		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_registerName("retain"))
