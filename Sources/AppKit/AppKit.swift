@@ -164,19 +164,27 @@ public class NSObjectGNUStepSwiftBridge {
 public class NSObjectClass {
 	public var _nsclassName: String
 	public var _nsobjptr: Class?
-	public init(name: String, superName: String?) {
+	public init(name: String, superName: String?, create: (Class?) -> ()) {
 		self._nsclassName = name
 		var cName = name.cString
 		if let superName = superName, var nsClass =  objc_getClass(superName), let cls = object_getClass(nsClass) {
 			
-			self._nsobjptr = objc_allocateClassPair(cls, name, 0)
+			//self._nsobjptr = objc_allocateClassPair(cls, name, 0)
 			
+			self._nsobjptr = smart_createNewClass(name, superName)
 			
 			print("Created \(name) subclass of \(superName)")
 		} else {
 			self._nsobjptr = objc_allocateClassPair(nil, &cName, 0)
 			print("Created \(name) subclass of nothing")
 		}
+		
+		if let ptr = self._nsobjptr {
+			create(ptr)
+		}
+		
+		
+		self.register()
 		
 		print(self._nsobjptr == nil ? "NIL!!!" : "NOT NIL :-)")
 		
@@ -204,30 +212,46 @@ public class NSObjectClass {
 
 }
 ///https://stackoverflow.com/questions/11319170/c-as-principal-class-or-a-cocoa-app-without-objc
+
+//@_cdecl("didFinishLaunchingForwarder")
+//func didFinishLaunchingForwarder(_ SELF: id,_ selector: SEL,_ argument1: id?) -> (UInt8) {
+//	print("HELLO WORLD!")
+//	return 0
+//}
+
 public class AppDelegate: NSObjectGNUStepSwiftBridge {
 	public override var _nsclassName: String {
 		return "AppDelegate"
 	}
-
-	public override init() {
-		var objcClass = NSObjectClass(name: "AppDelegate", superName: "NSObject")
+	
+	static let window = NSWindow()
+	
+	static var didFinishLaunchingForwarder: @convention(block) (id,SEL,id?) -> (UInt8) = { first, second, third in
 		
+		window.orderFront(sender: nil)
+		
+		print("HELLO WORLD! \(first)")
+		return 0
+	}
+
+	static var _objcClass = NSObjectClass(name: "AppDelegate", superName: "NSObject", create: { ptr in
+		var types = "i@:@"
+		print("about to class_addMethod 2")
+		//unsafeBitCast(didFinishLaunchingForwarder, to: IMP.self)
+		let imp = imp_implementationWithBlock(unsafeBitCast(didFinishLaunchingForwarder, to: id.self))
+		class_addMethod(ptr, sel_registerName("applicationDidFinishLaunching:"),imp, types)
+		print("just class_addMethod 3")
+	})
+	
+	public override init() {
+		_ = AppDelegate._objcClass
+
 		super.init()
 		
 		
-		if let ptr = objcClass._nsobjptr {
+		
 
-			var didFinishLaunchingForwarder: @convention(block) (Any?,Any?) -> (Void) = { first, second in
-				print("HELLO WORLD!")
-			}
-			
-			var types = "i@:@"
-			print("about to class_addMethod 2")
-			class_addMethod(ptr, sel_registerName("applicationDidFinishLaunching:"),unsafeBitCast(didFinishLaunchingForwarder, to: IMP.self), types)
-			print("just class_addMethod 3")
-		}
 
-		objcClass.register()
 		
 		//let  nsWindowClass =  objc_getClass("NSWindow")
 		//var allocatedObject = forSwift_objcSendMessage(&nsWindowClass!.pointee, sel_registerName("alloc"))
@@ -237,14 +261,14 @@ public class AppDelegate: NSObjectGNUStepSwiftBridge {
 		var nclass = objc_getClass("AppDelegate")
 		print("AppDelegate 2 \(nclass)")
 		
-		let x = objc_msg_lookup(&nclass!.pointee, sel_registerName("alloc"))
-		print("AppDelegate x = \(x)")
+//		let x = objc_msg_lookup(&nclass!.pointee, sel_registerName("alloc"))
+//		print("AppDelegate x = \(x)")
 		
-		var initalizedObject = forSwift_objcSendMessage(&nclass!.pointee, sel_registerName("alloc"))
-		print("AppDelegate 3 \(initalizedObject)")
-		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_registerName("init"))
+		var initalizedObject = forSwift_objcSendMessage(&nclass!.pointee, sel_getUid("alloc"))
+		print("AppDelegate 3 call on \(initalizedObject)")
+		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_getUid("init"))
 		print("AppDelegate 4")
-		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_registerName("retain"))
+		//initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_registerName("retain"))
 		self._nsobjptr = initalizedObject
 
 		print("PTR: \(self._nsobjptr)")
