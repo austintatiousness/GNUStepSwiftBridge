@@ -4,7 +4,7 @@
 import Foundation
 import FoundationGNUStep
 import libobjc2
-import AppKit
+import AppKitGNUStep
 import ObjCSwiftInterop
 
 struct NSRect2 {
