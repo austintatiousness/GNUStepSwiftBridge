@@ -1,7 +1,7 @@
 {
     ApplicationDescription = "A GNUStep Swift Bridge App";
     ApplicationIcon = Terminal;
-    ApplicationName = Terminal;
+    ApplicationName = HelloWorld;
     ApplicationRelease = "0.9.8";
     ApplicationURL = "http://www.nongnu.org/terminal/";
     Authors = (
@@ -15,7 +15,7 @@
     NOTE = "Automatically generated, do not edit!";
     NSExecutable = HelloWorld;
     NSIcon = "Terminal.tiff";
-
+    NSMainNibFile = HelloWorld;
     NSMainStoryboardFile = "";
     NSPrincipalClass = NSApplication;
     NSRole = Application;
