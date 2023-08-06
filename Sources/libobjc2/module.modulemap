@@ -1,0 +1,6 @@
+
+module libobjc2 {
+	header "../../Headers/objc/runtime.h"
+	link "/System/lib/libobjc.so"
+	export  *
+}

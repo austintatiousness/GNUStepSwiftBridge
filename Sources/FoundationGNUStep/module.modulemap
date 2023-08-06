@@ -1,0 +1,6 @@
+
+module FoundationGNUStep {
+	header "../../Headers/FoundationGNUStep-bridge.h"
+	link "/Library/Libraries/libgnustep-base.so.1.29.0"
+	export  *
+}

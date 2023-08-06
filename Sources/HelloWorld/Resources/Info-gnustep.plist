@@ -1,0 +1,30 @@
+{
+    ApplicationDescription = "A GNUStep Swift Bridge App";
+    ApplicationIcon = Terminal;
+    ApplicationName = Terminal;
+    ApplicationRelease = "0.9.8";
+    ApplicationURL = "http://www.nongnu.org/terminal/";
+    Authors = (
+	"Alexander Malmberg <alex@malmberg.org>",
+	"Sergii Stoian <stoyan255@ukr.net>"
+    );
+    Copyright = "Copyright 2002, 2003 Alexander Malmberg <alex@malmberg.org>";
+    CopyrightDescription = "Released under the GNU GPL. See COPYING for details.";
+    FullVersionID = "0.9.8";
+    GSMainMarkupFile = "";
+    NOTE = "Automatically generated, do not edit!";
+    NSExecutable = HelloWorld;
+    NSIcon = "Terminal.tiff";
+
+    NSMainStoryboardFile = "";
+    NSPrincipalClass = NSApplication;
+    NSRole = Application;
+    NSTypes = (
+	{
+	    NSIcon = "TermFile.tiff";
+	    NSUnixExtensions = (
+		term
+	    );
+	}
+    );
+}

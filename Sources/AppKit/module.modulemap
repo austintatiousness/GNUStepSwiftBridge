@@ -1,0 +1,6 @@
+
+module AppKit {
+	header "../../Headers/AppKit-bridge.h"
+	link "/Library/Libraries/libgnustep-gui.so.0.30.0"
+	export  *
+}
