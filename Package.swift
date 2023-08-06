@@ -18,7 +18,7 @@ let package = Package(
 				name: "NSWindowTest",
 				targets: ["NSWindowTest"]),
 		
-		.library(name: "AppKit", targets: ["AppKit"]),
+		.library(name: "AppKitGNUStep", targets: ["AppKitGNUStep"]),
 		
 		.library(name: "FoundationGNUStep", targets: ["FoundationGNUStep"]),
 		.library(name: "ObjCSwiftInterop",  targets: ["ObjCSwiftInterop"])
@@ -33,7 +33,7 @@ let package = Package(
 		.target(name: "ObjCSwiftInterop"),
 		
 		.systemLibrary(name: "libobjc2"),
-		.systemLibrary(name: "AppKit"),
+		.systemLibrary(name: "AppKitGNUStep"),
 		.systemLibrary(name: "FoundationGNUStep"),
 		.testTarget(
 			name: "HelloWorldTests",
