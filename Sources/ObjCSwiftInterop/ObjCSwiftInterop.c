@@ -18,6 +18,11 @@ id forSwift_objcSendMessage(id ID, SEL cmd) {
     return objc_msgSend(ID, cmd);
 }
 
+char* forSwift_objcSendMessage_ReturnCString(id ID, SEL cmd) {
+	return (char*) objc_msgSend(ID, cmd);
+	//return value;
+}
+
 id forSwift_objcSendMessage1(id ID, SEL cmd, void const *arg1) {
     return objc_msgSend(ID, cmd,  arg1);
 }
