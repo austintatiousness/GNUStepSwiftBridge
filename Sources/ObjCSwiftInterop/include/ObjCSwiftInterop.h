@@ -28,6 +28,8 @@ double x;
 double y;
 };
 
+char* forSwift_objcSendMessage_ReturnCString(id ID, SEL cmd);
+
 id forSwift_objcSendMessage(id ID, SEL cmd);
 id forSwift_objcSendMessage1(id ID, SEL cmd, void const *arg1);
 id forSwift_objcSendMessageCString(id ID, SEL cmd, const char* bytes);
