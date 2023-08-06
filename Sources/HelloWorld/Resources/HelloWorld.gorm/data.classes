@@ -1,0 +1,66 @@
+{
+    "## Comment" = "Do NOT change this file, Gorm maintains it";
+    Controller = {
+	Actions = (
+	    "openWindow:",
+	    "openPreferences:",
+	    "openSetTitlePanel:",
+	    "addFontTrait:",
+	    "modifyFont:",
+	    "orderFrontFontPanel:",
+	    "saveSessionAs:",
+	    "openSession:",
+	    "saveSession:",
+	    "openServicesPanel:",
+	    "openInfoPanel:",
+	    "openFindPanel:",
+	    "enterSelection:",
+	    "findNext:",
+	    "findPrevious:",
+	    "jumpToSelection:"
+	);
+	Outlets = (
+	);
+	Super = NSObject;
+    };
+    FirstResponder = {
+	Actions = (
+	    "addFontTrait:",
+	    "clearBuffer:",
+	    "enterSelection:",
+	    "findNext:",
+	    "findPrevious:",
+	    "jumpToSelection:",
+	    "modifyFont:",
+	    "modifyFontViaPanel:",
+	    "newAction:",
+	    "openFindPanel:",
+	    "openServicesPanel:",
+	    "openSession:",
+	    "openSetTitlePanel:",
+	    "openWindow:",
+	    "orderFrontFontPanel:",
+	    "pasteSelection:",
+	    "removeFontTrait:",
+	    "saveSession:",
+	    "} - initWithPreferences:"
+	);
+	Super = NSObject;
+    };
+    TerminalApplication = {
+	Actions = (
+	);
+	Outlets = (
+	);
+	Super = NSApplication;
+    };
+    TerminalView = {
+	Actions = (
+	    "} - initWithPreferences:",
+	    "pasteSelection:"
+	);
+	Outlets = (
+	);
+	Super = NSView;
+    };
+}
