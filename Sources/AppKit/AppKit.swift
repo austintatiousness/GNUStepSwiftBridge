@@ -45,6 +45,27 @@ public func objc_convertFromSwift_toObjC(value: Any?, typeHint: String? = nil) -
 	return value
 }
 
+public func smart_swift_lookupIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String) -> UnsafeMutableRawPointer? {
+	if var ptr = _nsobjptr {
+		//let ivar = class_getInstanceVariable(object_getClass(ptr), name)
+		print("looking for \(name)")
+		let v: UnsafeMutableRawPointer? = getIvarPointer(ptr, name)
+
+		print("smart_swift_lookupIvar found \(v) size \(MemoryLayout.size(ofValue: getIvarPointer(ptr, name)))")
+		return v
+	}
+	return nil
+}
+
+public func smart_swift_setIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String, value: Any) {
+	if var ptr = _nsobjptr {
+		var value = value
+		//let ivar = class_getInstanceVariable(object_getClass(ptr), name)
+		_ = object_setInstanceVariable(ptr, name, &value)
+	}
+
+}
+
 public func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String,  value1: Any?, value2: Any?, value3: Any?, value4: Any?, value5: Any?, value6: Any?, value7: Any?, value8: Any?, value9: Any?) -> T? {
 	var total: UInt = 0
 	
@@ -134,7 +155,7 @@ public func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, select
 
 }
 
-public class NSObjectGNUStepSwiftBridge {
+open class NSObjectGNUStepSwiftBridge {
 	public var _nsobjptr: UnsafeMutablePointer<objc_object>? = nil
 	public var _nsclassName: String {
 		return "NSObject"
@@ -154,12 +175,19 @@ public class NSObjectGNUStepSwiftBridge {
 		}
 	}
 	
-	public func add(selector: String, method: Any?, types: String) {
+	public func addMethod<T>(selector: String, block: T, types: String) {
 		guard var selfPtr = self._nsobjptr else {return}
-			
+		guard let CLASS = object_getClass(selfPtr) else {return}
+		//print("registering :\(T.self)")
+		let imp = imp_implementationWithBlock(unsafeBitCast(block, to: id.self))
+		class_addMethod(CLASS, sel_registerName(selector),imp, types)
 	}
-
+	
+	
 }
+
+
+
 
 public class NSObjectClass {
 	public var _nsclassName: String
@@ -167,6 +195,7 @@ public class NSObjectClass {
 	public init(name: String, superName: String?, create: (Class?) -> ()) {
 		self._nsclassName = name
 		var cName = name.cString
+		print("trying to create \(name)")
 		if let superName = superName, var nsClass =  objc_getClass(superName), let cls = object_getClass(nsClass) {
 			
 			//self._nsobjptr = objc_allocateClassPair(cls, name, 0)
@@ -181,7 +210,12 @@ public class NSObjectClass {
 		
 		if let ptr = self._nsobjptr {
 			create(ptr)
+			//https://stackoverflow.com/questions/33184826/what-does-class-addivars-alignment-do-in-objective-c
+			
+			class_addIvar(ptr, "___swiftPtr", MemoryLayout<UInt64>.size, UInt8(MemoryLayout<UInt64>.alignment), "@")
+			
 		}
+		
 		
 		
 		self.register()
@@ -219,60 +253,55 @@ public class NSObjectClass {
 //	return 0
 //}
 
-public class AppDelegate: NSObjectGNUStepSwiftBridge {
+
+open class NSApplicationDelegate: NSObjectGNUStepSwiftBridge {
 	public override var _nsclassName: String {
-		return "AppDelegate"
+		return "NSApplicationDelegateForSwift"
 	}
 	
-	static let window = NSWindow()
 	
-	static var didFinishLaunchingForwarder: @convention(block) (id,SEL,id?) -> (UInt8) = { first, second, third in
+	
+	static var didFinishLaunchingIMP: @convention(block) (UnsafeMutablePointer<objc_object>?,SEL,id?) -> (UInt8) = { first, second, third in
+		let z = smart_swift_lookupIvar(_nsobjptr: first, name: "___swiftPtr")
 		
-		window.orderFront(sender: nil)
+		let SELF = z!.load(as: NSApplicationDelegate.self)
+		print(SELF.string)
+		SELF.applicationDidFinishLaunching(notification: nil)
 		
-		print("HELLO WORLD! \(first)")
+
 		return 0
 	}
-
-	static var _objcClass = NSObjectClass(name: "AppDelegate", superName: "NSObject", create: { ptr in
-		var types = "i@:@"
-		print("about to class_addMethod 2")
-		//unsafeBitCast(didFinishLaunchingForwarder, to: IMP.self)
-		let imp = imp_implementationWithBlock(unsafeBitCast(didFinishLaunchingForwarder, to: id.self))
-		class_addMethod(ptr, sel_registerName("applicationDidFinishLaunching:"),imp, types)
-		print("just class_addMethod 3")
-	})
 	
+
+	open func applicationDidFinishLaunching(notification: Any?) {
+		
+	}
+
+	static var _objcClass = NSObjectClass(name: "NSApplicationDelegateForSwift", superName: "NSObject", create: { ptr in
+		var types = "i@:@"
+		let imp = imp_implementationWithBlock(unsafeBitCast(didFinishLaunchingIMP, to: id.self))
+		class_addMethod(ptr, sel_registerName("applicationDidFinishLaunching:"),imp, types)
+	})
+	var string: String = "THIS is THAT"
 	public override init() {
-		_ = AppDelegate._objcClass
+		_ = NSApplicationDelegate._objcClass
 
 		super.init()
 		
 		
-		
+		self.string = "THESE ARE THOSE"
 
-
-		
-		//let  nsWindowClass =  objc_getClass("NSWindow")
-		//var allocatedObject = forSwift_objcSendMessage(&nsWindowClass!.pointee, sel_registerName("alloc"))
-		
-		
-		print("AppDelegate 1 \(self._nsclassName)")
-		var nclass = objc_getClass("AppDelegate")
-		print("AppDelegate 2 \(nclass)")
-		
-//		let x = objc_msg_lookup(&nclass!.pointee, sel_registerName("alloc"))
-//		print("AppDelegate x = \(x)")
+		var nclass = objc_getClass("NSApplicationDelegateForSwift")
 		
 		var initalizedObject = forSwift_objcSendMessage(&nclass!.pointee, sel_getUid("alloc"))
-		print("AppDelegate 3 call on \(initalizedObject)")
 		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_getUid("init"))
-		print("AppDelegate 4")
-		//initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_registerName("retain"))
+
 		self._nsobjptr = initalizedObject
 
-		print("PTR: \(self._nsobjptr)")
+		var cast = Unmanaged.passUnretained(self).toOpaque()
+		smart_swift_setIvar(_nsobjptr: self._nsobjptr, name: "___swiftPtr", value: cast)
 
+		//self.addMethod(selector: "applicationDidFinishLaunching:", block: Self.didFinishLaunchingIMP, types: "i@:@")
 		
 		
 	}
@@ -285,6 +314,69 @@ public class AppDelegate: NSObjectGNUStepSwiftBridge {
 	}
 
 }
+
+open class UIView: NSView {
+	public override var _nsclassName: String {
+		return "UIView"
+	}
+	
+	
+	
+	static var isFlippedIMP: @convention(block) (UnsafeMutablePointer<objc_object>?,SEL) -> (UInt8) = { first, second in
+		print("!!!!!!!!!!!!!!!!!!!!!!!!asked if is flipped!")
+		return 1
+	}
+	
+
+	static var _objcClass = NSObjectClass(name: "UIView", superName: "NSScrollView", create: { ptr in
+		
+	})
+
+	public override init() {
+		_ = UIView._objcClass
+
+		super.init()
+
+		var nclass = objc_getClass("UIView")
+		
+		var types = "c"
+		let imp = imp_implementationWithBlock(unsafeBitCast(UIView.isFlippedIMP, to: id.self))
+		class_replaceMethod(UIView._objcClass._nsobjptr!, sel_registerName("isFlipped"),imp, types)
+
+		var initalizedObject = forSwift_objcSendMessage(&nclass!.pointee, sel_getUid("alloc"))
+		initalizedObject = forSwift_objcSendMessage1NSRect(&initalizedObject!.pointee, sel_getUid("initWithFrame:"), NSRect(x: 0, y: 0, width: 100, height: 100))
+		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_getUid("retain"))
+		self._nsobjptr = initalizedObject
+
+		initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_getUid("_rebuildCoordinates"))
+		
+		//_rebuildCoordinates
+		
+		var cast = Unmanaged.passUnretained(self).toOpaque()
+		smart_swift_setIvar(_nsobjptr: self._nsobjptr, name: "___swiftPtr", value: cast)
+
+	}
+
+	
+	
+
+//	public func setFrame(_ rect: ObjCSwiftInterop.NSRect) {
+//		guard let selfPtr = self._nsobjptr else {return}
+//		_ = forSwift_objcSendMessage1NSRect(&selfPtr.pointee, sel_registerName("setFrame:"), rect)
+//	}
+	
+//	public var subviews: [Any] = []
+//	public func addSubview(_ subview: NSView) {
+//		subviews.append(subview)
+//		guard let selfPtr = self._nsobjptr else {return}
+//		if var ptr = subview._nsobjptr{
+//			_ = forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("addSubview:"), &ptr.pointee)
+//			
+//		}
+//	}
+
+}
+
 ///https://gnustep.github.io/resources/OpenStepSpec/ApplicationKit/Classes/NSColor.html
 public class NSColor: NSObjectGNUStepSwiftBridge {
 
@@ -354,46 +446,33 @@ public class NSString: NSObjectGNUStepSwiftBridge {
 	
 }
 
-//A UIView is an NSView but just with isFLIPPED
-public class UIView: NSObjectGNUStepSwiftBridge {
+
+
+open class NSView: NSObjectGNUStepSwiftBridge {
 	public override var _nsclassName: String {
 		return "NSView"
 	}
-	
+		
+	public var subviews: [Any] = []
 	public func addSubview(_ subview: NSView) {
+		subviews.append(subview)
 		guard let selfPtr = self._nsobjptr else {return}
 		if var ptr = subview._nsobjptr{
 			_ = forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("addSubview:"), &ptr.pointee)
-		
+			
 		}
 	}
 
 	public func setBackgroundColor(_ color:  NSColor) {
 		guard var colorPtr = color._nsobjptr else {return}
 		guard var selfPtr = self._nsobjptr else {return}
+		print("about to set background color")
 		_ = forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("setBackgroundColor:"), &colorPtr.pointee)
-	}
-
-
-}
-
-public class NSView: NSObjectGNUStepSwiftBridge {
-	public override var _nsclassName: String {
-		return "NSView"
 	}
 	
-	public func addSubview(_ subview: NSView) {
+	public func setFrame(_ rect: ObjCSwiftInterop.NSRect) {
 		guard let selfPtr = self._nsobjptr else {return}
-		if var ptr = subview._nsobjptr{
-			_ = forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("addSubview:"), &ptr.pointee)
-		
-		}
-	}
-
-	public func setBackgroundColor(_ color:  NSColor) {
-		guard var colorPtr = color._nsobjptr else {return}
-		guard var selfPtr = self._nsobjptr else {return}
-		_ = forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("setBackgroundColor:"), &colorPtr.pointee)
+		_ = forSwift_objcSendMessage1NSRect(&selfPtr.pointee, sel_registerName("setFrame:"), rect)
 	}
 
 
@@ -458,12 +537,28 @@ public class NSWindow: NSObjectGNUStepSwiftBridge {
 			_ = forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("setTitle:"), &ptr.pointee)
 		}
 	}
-
+	public var subviews: [Any] = []
 	public func addSubview(_ subview: NSObjectGNUStepSwiftBridge) {
+		subviews.append(subview)
 		guard let selfPtr = self._nsobjptr else {return}
 		var contentViewPtr =  forSwift_objcSendMessage(&selfPtr.pointee, sel_registerName("contentView"))
 		if var ptr = subview._nsobjptr, var contentViewPtr = contentViewPtr {
 			_ = forSwift_objcSendMessage1(&contentViewPtr.pointee, sel_registerName("addSubview:"), &ptr.pointee)
+		}
+	}
+	
+	var contentView: NSView?
+	public func setContentView(_ view: NSView) {
+		guard let selfPtr = self._nsobjptr else {return}
+		self.contentView = view
+		if var ptr = view._nsobjptr {
+			var _ =  forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("setContentView:"), &ptr.pointee)
+			_ = forSwift_objcSendMessage1(&ptr.pointee, sel_registerName("_invalidateCoordinates"), &ptr.pointee)
+			_ = forSwift_objcSendMessage1(&ptr.pointee, sel_registerName("_rebuildCoordinates"), &ptr.pointee)
+			
+			//initalizedObject = forSwift_objcSendMessage(&initalizedObject!.pointee, sel_getUid("_rebuildCoordinates"))
+			
+			
 		}
 	}
 
@@ -506,7 +601,7 @@ public class NSButton: NSControl {
 		
 
 		allocatedObject = forSwift_objcSendMessage1NSRect(&allocatedObject!.pointee, sel_registerName("initWithFrame:"), rect)
-		//_ =  forSwift_objcSendMessage(&allocatedObject!.pointee, sel_registerName("retain"))
+		_ =  forSwift_objcSendMessage(&allocatedObject!.pointee, sel_registerName("retain"))
 
 		self._nsobjptr = allocatedObject
 		//self.setTitle(NSString(string: "Button"))
@@ -531,13 +626,8 @@ public class NSButton: NSControl {
 		_ = forSwift_objcSendMessage1(&ptr.pointee, sel_registerName("setEditable:"), &bool)
 	}
 	
-	public func setFrame(_ frame: ObjCSwiftInterop.NSRect) {
-		guard var ptr = self._nsobjptr else {return}
-		var frame = frame
-
-		_ = forSwift_objcSendMessage1(&ptr.pointee, sel_registerName("setFrame:"), &frame)
-	}
-
+	
+ 
 }
 
 public class NSLabel: NSControl {
@@ -586,11 +676,23 @@ public class NSLabel: NSControl {
 		_ = forSwift_objcSendMessage1(&ptr.pointee, sel_registerName("setSelectable:"), &bool)
 	}
 
-	public func setFrame(_ frame: ObjCSwiftInterop.NSRect) {
-		guard var ptr = self._nsobjptr else {return}
-		var frame = frame
-
-		_ = forSwift_objcSendMessage1(&ptr.pointee, sel_registerName("setFrame:"), &frame)
-	}
+	
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
