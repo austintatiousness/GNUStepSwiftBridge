@@ -26,6 +26,7 @@ struct App {
 		var sharedApp =  forSwift_objcSendMessage(&napClass!.pointee, sel_registerName("sharedApplication"))
 		
 		App.window.orderFront(sender: nil)
+		App.window.setBackgroundColor(NSColor(red: 1.0, green: 1.0, blue: 0.0, alpha: 0.5))
 		App.label.setBackgroundColor(NSColor(red: 1.0, green: 1.0, blue: 0.0, alpha: 1.0))
 		App.window.addSubview(App.label)
 		
@@ -35,7 +36,7 @@ struct App {
 		App.window2.setTitle(NSString(string: "Window 2"))
 		App.window2.addSubview(App.button)
 		
-		App.window.printWindow()
+		//App.window.printWindow()
 		
 
 		//window.setBackgroundColor(NSColor())
