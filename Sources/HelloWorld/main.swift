@@ -8,6 +8,20 @@ import AppKitGNUStep
 import ObjCSwiftInterop
 import AppKit
 
+class AppDelegate: NSApplicationDelegate {
+	lazy var window = NSWindow()
+	lazy var button = NSButton()
+	lazy var view = UIView()
+	override func applicationDidFinishLaunching(notification: Any?) {
+		window.orderFront(sender: self)
+		
+		button.setFrame(.init(x: 10, y: 0, width: 200, height: 22))
+		view.setBackgroundColor(.init(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0))
+		window.setContentView(view)
+		view.addSubview(button)
+	}
+}
+
 @main
 struct App {
 	static var window = NSWindow()
@@ -22,16 +36,19 @@ struct App {
 		//var poolClassAllocated =  forSwift_objcSendMessage(&objc_getClass("NSAutoreleasePool")!.pointee, sel_registerName("alloc"))
 		//_ =  forSwift_objcSendMessage(&poolClassAllocated!.pointee, sel_registerName("init"))
 
+		
+		//https://stackoverflow.com/questions/24662864/swift-how-to-use-sizeof
+		
+		
+		
 		let napClass =  objc_getClass("NSApplication")
 		var sharedApp =  forSwift_objcSendMessage(&napClass!.pointee, sel_registerName("sharedApplication"))
-			
-		print("about to set delegate")
-		if let ptr = delegate._nsobjptr {
-			print("ptr is not nill!")
-		}
-		_ = forSwift_objcSendMessage1(&sharedApp!.pointee, sel_registerName("setDelegate:"), &delegate._nsobjptr!)
-		print("made it!")
+		print("Just created NSApplication")
 		
+
+		
+		let v = forSwift_objcSendMessage1ID(&sharedApp!.pointee, sel_getUid("setDelegate:"), delegate._nsobjptr!)
+		print("made it!")
 
 		
 		
