@@ -22,16 +22,27 @@ double width;
 double height;
 };
 
+typedef NSRect CGRect;
+
 typedef struct _NSPoint NSPoint;
 struct _NSPoint {
 double x;
 double y;
 };
 
+typedef NSPoint CGPoint;
+
+Class smart_createNewClass(const char* name, const char* superName);
+
+void* getIvarPointer(id object, char const *name);
+
 char* forSwift_objcSendMessage_ReturnCString(id ID, SEL cmd);
 
 id forSwift_objcSendMessage(id ID, SEL cmd);
 id forSwift_objcSendMessage1(id ID, SEL cmd, void const *arg1);
+
+id forSwift_objcSendMessage1ID(id ID, SEL cmd, id arg1);
+
 id forSwift_objcSendMessageCString(id ID, SEL cmd, const char* bytes);
 id forSwift_objcSendMessage2(id ID, SEL cmd, void const *arg1, void const *arg2);
 id forSwift_objcSendMessage3(id ID, SEL cmd, void const *arg1, void const *arg2, void const *arg3);
