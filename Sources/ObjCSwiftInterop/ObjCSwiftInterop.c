@@ -13,6 +13,18 @@
 
 #import "../../Headers/objc/objc-visibility.h"
 
+Class smart_createNewClass(const char* name, const char* superName) {
+	Class AppDelClass = objc_allocateClassPair((Class)
+										  objc_getClass(superName), name, 0);
+	objc_registerClassPair(AppDelClass);
+	return AppDelClass;
+}
+
+void* getIvarPointer(id object, char const *name) {
+	Ivar ivar = class_getInstanceVariable(object_getClass(object), name);
+	if (!ivar) return 0;
+	return (uint8_t*)(void*)object + ivar_getOffset(ivar);
+}
 
 id forSwift_objcSendMessage(id ID, SEL cmd) {
     return objc_msgSend(ID, cmd);
@@ -25,6 +37,10 @@ char* forSwift_objcSendMessage_ReturnCString(id ID, SEL cmd) {
 
 id forSwift_objcSendMessage1(id ID, SEL cmd, void const *arg1) {
     return objc_msgSend(ID, cmd,  arg1);
+}
+
+id forSwift_objcSendMessage1ID(id ID, SEL cmd, id arg1) {
+	return objc_msgSend(ID, cmd,  arg1);
 }
 
 id forSwift_objcSendMessageCString(id ID, SEL cmd, const char* bytes) {
