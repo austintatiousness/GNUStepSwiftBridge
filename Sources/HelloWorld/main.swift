@@ -14,10 +14,11 @@ class AppDelegate: NSApplicationDelegate {
 	lazy var view = UIView()
 	override func applicationDidFinishLaunching(notification: Any?) {
 		window.orderFront(sender: self)
-		
-		button.setFrame(.init(x: 10, y: 0, width: 200, height: 22))
+		button.setTitle(NSString(string: "HELP"))
+		button.setFrame(.init(x: 10, y: 30, width: 200, height: 22))
 		view.setBackgroundColor(.init(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0))
 		window.setContentView(view)
+		print("FRAME: \(button.frame)")
 		view.addSubview(button)
 	}
 }
