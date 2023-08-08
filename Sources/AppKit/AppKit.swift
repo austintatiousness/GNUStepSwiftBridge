@@ -13,6 +13,19 @@ import ObjectiveC
 
 public typealias CGRect = ObjCSwiftInterop.CGRect
 
+//NSApplication
+open class NSApplication: GNUStepNSObjectWrapper {
+	public override var _nsclassName: String {
+		return "NSApplication"
+	}
+	public var shared: NSApplication {
+		get {
+			var sharedApp =  forSwift_objcSendMessage(&self._nsobjptr!.pointee, sel_registerName("sharedApplication"))
+			return NSApplication()
+		}
+	}
+}
+
 open class NSApplicationDelegate: GNUStepNSObjectWrapper {
 	public override var _nsclassName: String {
 		return "NSApplicationDelegateForSwift"
@@ -60,7 +73,7 @@ open class NSApplicationDelegate: GNUStepNSObjectWrapper {
 		var cast = Unmanaged.passUnretained(self).toOpaque()
 		smart_swift_setIvar(_nsobjptr: self._nsobjptr, name: "___swiftPtr", value: cast)
 
-		self.addMethod(selector: "applicationDidFinishLaunching:", block: Self.didFinishLaunchingIMP, types: "i@:@")
+		//self.addMethod(selector: "applicationDidFinishLaunching:", block: Self.didFinishLaunchingIMP, types: "i@:@")
 		
 		
 	}
