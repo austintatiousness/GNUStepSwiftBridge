@@ -56,9 +56,7 @@ public func objc_convertToSwift_NSObject(value: id?) -> GNUStepNSObjectWrapper? 
 }
 
 public func objc_convertToSwift_ofType<T>(value: Any?) -> T? {
-	print("!!!!!objc_convertToSwift_ofType is \(value)")
 	if var id = value {
-		print("!!!!!objc_convertToSwift_ofType is \(value)")
 		return unsafeBitCast(value, to: T.self)
 	}
 	return nil
@@ -270,34 +268,17 @@ public class GNUStepNSObjectSubclassConstructor {
 	public init(name: String, superName: String?, create: (Class?) -> ()) {
 		self._nsclassName = name
 		var cName = name.cString
-		print("trying to create \(name)")
 		if let superName = superName, var nsClass =  objc_getClass(superName), let cls = object_getClass(nsClass) {
-			
-			//self._nsobjptr = objc_allocateClassPair(cls, name, 0)
-			
 			self._nsobjptr = smart_createNewClass(name, superName)
-			
-			print("Created \(name) subclass of \(superName)")
 		} else {
 			self._nsobjptr = objc_allocateClassPair(nil, &cName, 0)
-			print("Created \(name) subclass of nothing")
 		}
 		
 		if let ptr = self._nsobjptr {
 			create(ptr)
-			//https://stackoverflow.com/questions/33184826/what-does-class-addivars-alignment-do-in-objective-c
-			
 			class_addIvar(ptr, "___swiftPtr", MemoryLayout<UInt64>.size, UInt8(MemoryLayout<UInt64>.alignment), "@")
-			
 		}
-		
-		
-		
 		self.register()
-		
-		print(self._nsobjptr == nil ? "NIL!!!" : "NOT NIL :-)")
-		
-
 	}
 	
 	public init(class: Class, name: String) {
@@ -306,17 +287,12 @@ public class GNUStepNSObjectSubclassConstructor {
 	}
 
 	public func register() {
-		
 		if var chars = class_getName(self._nsobjptr!) {
 			let name = String(cString: chars)
 			print("named: \(name)")
 		}
-		
-		
-		
-		print("registering class \(self._nsobjptr)")
 		objc_registerClassPair(self._nsobjptr!)
-		print("registered \(_nsclassName) but got \(objc_getClass(self._nsclassName)) after lookup")
+		//print("registered \(_nsclassName) but got \(objc_getClass(self._nsclassName)) after lookup")
 	}
 
 }
