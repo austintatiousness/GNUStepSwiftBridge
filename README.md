@@ -19,6 +19,8 @@ NSWindowTest is to strictly test the code that creates NSWindow. It runs well!
 ### class GNUStepNSObjectWrapper
 This is a class written in Swfit that is responsible to instantiate GNUStep ObjC classes. When it instantiates a new NSObject, it always calls retain. If it is just wrapping a alreday made pointer, currently it does not call retain. 
 
+If you intend to wrap a new subclass of an existing NSObject, Objective-C object, then you need to implement ```GNUStepNSObjectSubclassConstructor``` first, then you can wrap that subclass.
+
 ### class GNUStepNSObjectSubclassConstructor
 This class is responsible for adding new objects to the GNUStep ObjC runtime. Every new object that it creates gets an additional Ivar called ```___swiftPtr``` that hols a pointer to the Swift object that it wraps.
 
