@@ -16,10 +16,10 @@ NSWindowTest is to strictly test the code that creates NSWindow. It runs well!
 
 # NOTES, ISSUES, IDEAS
 
-### class NSObjectGNUStepSwiftBridge
+### class GNUStepNSObjectWrapper
 This is a class written in Swfit that is responsible to instantiate GNUStep ObjC classes. When it instantiates a new NSObject, it always calls retain. If it is just wrapping a alreday made pointer, currently it does not call retain. 
 
-### class NSObjectClass
+### class GNUStepNSObjectSubclassConstructor
 This class is responsible for adding new objects to the GNUStep ObjC runtime. Every new object that it creates gets an additional Ivar called ```___swiftPtr``` that hols a pointer to the Swift object that it wraps.
 
 ### objc_msgSend()
@@ -30,7 +30,7 @@ Ultimately, I would like a swift version of this which more intelligently decide
 There is a lot of work to be done here. 
 
 ### retain and release
-Currently, I have a class called ```NSObjectGNUStepSwiftBridge``` that holds a reference to a NSObject in the GNUStep ObjC runtime. This object retains any NSObjects that is creates. However, we may get that same object back in the form of an ```id``` from the GNUStep ObjC2 runtime via a call to ```objc_msgSend``` or ```smart_swift_lookupIvar```. 
+Currently, I have a class called ```GNUStepNSObjectWrapper``` that holds a reference to a NSObject in the GNUStep ObjC runtime. This object retains any NSObjects that is creates. However, we may get that same object back in the form of an ```id``` from the GNUStep ObjC2 runtime via a call to ```objc_msgSend``` or ```smart_swift_lookupIvar```. 
 
 When we recieve that object we either have to (a) construct a new wrapper calss. This is easy, we can just call ```object_getClassName()``` and use the retrieved name to map it to a Swift class that will wrap that ```id``` or (b) we can take the ```id``` value and look up a Swift object that was already instantiated and wraps it. 
 
