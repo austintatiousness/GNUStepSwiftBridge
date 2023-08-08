@@ -87,7 +87,7 @@ public func smart_swift_lookupIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?
 }
 
 public func smart_swift_lookupIvarWithType<T>(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String) -> T? {
-	let z = smart_swift_lookupIvar(_nsobjptr: _nsobjptr, name: "___swiftPtr")
+	let z = smart_swift_lookupIvar(_nsobjptr: _nsobjptr, name: name)
 	if let SELF = z?.load(as: T.self) {
 		return SELF
 	}
