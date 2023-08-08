@@ -7,7 +7,7 @@ import libobjc2
 import AppKitGNUStep
 import ObjCSwiftInterop
 
-#if os(macOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(visionOS)
 import ObjectiveC
 #endif
 
@@ -19,6 +19,9 @@ public struct StopVariable {
 
 public typealias CGRect = ObjCSwiftInterop.CGRect
 
+//This function takes the 'id' pointer, attempts to figure out what class it belongs to
+//then creates a new Swif object that wraps it.
+//There are a lot of questions to be solved here, like .. do we retain it again?
 public func objc_convertToSwift_NSObject(value: id?) -> NSObjectGNUStepSwiftBridge? {
 	if var id = value {
 		let value = object_getClassName(id)
@@ -88,7 +91,7 @@ public func smart_swift_setIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?, n
 }
 
 public func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String) -> T? {
-	return objc_smartobjc_smart_sendMessage_sendMessage(object: object, selector: selector, value1: StopVariable(), value2: StopVariable(), value3: StopVariable(), value4: StopVariable(), value5: StopVariable(), value6: StopVariable(), value7: StopVariable(), value8: StopVariable(), value9: StopVariable())
+	return objc_smart_sendMessage(object: object, selector: selector, value1: StopVariable(), value2: StopVariable(), value3: StopVariable(), value4: StopVariable(), value5: StopVariable(), value6: StopVariable(), value7: StopVariable(), value8: StopVariable(), value9: StopVariable())
 }
 
 public func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String,  value1: Any?) -> T? {
