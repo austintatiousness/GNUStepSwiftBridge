@@ -11,309 +11,9 @@ import ObjCSwiftInterop
 import ObjectiveC
 #endif
 
-public struct StopVariable {
-	public init() {
-		
-	}
-}
-
 public typealias CGRect = ObjCSwiftInterop.CGRect
 
-//This function takes the 'id' pointer, attempts to figure out what class it belongs to
-//then creates a new Swif object that wraps it.
-//There are a lot of questions to be solved here, like .. do we retain it again?
-public func objc_convertToSwift_NSObject(value: id?) -> NSObjectGNUStepSwiftBridge? {
-	if var id = value {
-		let value = object_getClassName(id)
-		if let value = value  {
-			let string = String(cString: value)
-
-			if string == "GSTinyString" || string == "GSCBufferString" {
-				let rtn = NSString(nsobjptr: &id.pointee)
-				let s = rtn.string
-				return rtn
-			} else {
-				print("unknown type \(string)")
-			}
-		}
-	}
-	return nil
-}
-
-public func objc_convertToSwift_ofType<T>(value: Any?) -> T? {
-	print("!!!!!objc_convertToSwift_ofType is \(value)")
-	if var id = value {
-		print("!!!!!objc_convertToSwift_ofType is \(value)")
-		return unsafeBitCast(value, to: T.self)
-	}
-	return nil
-}
-
-public func objc_convertFromSwift_toObjC(value: Any?, typeHint: String? = nil) -> Any? {
-	if let value = value as? String {
-		return NSString(string: value)
-	} else if let value = value as? AnyObject {
-		return Unmanaged.passUnretained(value).toOpaque()
-	} else if var value = value as? Any {
-		return value
-	}
-	
-	return value
-}
-
-public func smart_swift_lookupIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String) -> UnsafeMutableRawPointer? {
-	if var ptr = _nsobjptr {
-		//let ivar = class_getInstanceVariable(object_getClass(ptr), name)
-		//print("looking for \(name)")
-		let v: UnsafeMutableRawPointer? = getIvarPointer(ptr, name)
-
-		//print("smart_swift_lookupIvar found \(v) size \(MemoryLayout.size(ofValue: getIvarPointer(ptr, name)))")
-		return v
-	}
-	return nil
-}
-
-public func smart_swift_lookupIvarWithType<T>(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String) -> T? {
-	let z = smart_swift_lookupIvar(_nsobjptr: _nsobjptr, name: "___swiftPtr")
-	if let SELF = z?.load(as: T.self) {
-		return SELF
-	}
-	return nil
-}
-
-public func smart_swift_setIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String, value: Any) {
-	if var ptr = _nsobjptr {
-		var value = value
-		//let ivar = class_getInstanceVariable(object_getClass(ptr), name)
-		_ = object_setInstanceVariable(ptr, name, &value)
-	}
-
-}
-
-public func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String) -> T? {
-	return objc_smart_sendMessage(object: object, selector: selector, value1: StopVariable(), value2: StopVariable(), value3: StopVariable(), value4: StopVariable(), value5: StopVariable(), value6: StopVariable(), value7: StopVariable(), value8: StopVariable(), value9: StopVariable())
-}
-
-public func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String,  value1: Any?) -> T? {
-	return objc_smart_sendMessage(object: object, selector: selector, value1: value1, value2: StopVariable(), value3: StopVariable(), value4: StopVariable(), value5: StopVariable(), value6: StopVariable(), value7: StopVariable(), value8: StopVariable(), value9: StopVariable())
-}
-
-public func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String,  value1: Any?, value2: Any?, value3: Any?, value4: Any?, value5: Any?, value6: Any?, value7: Any?, value8: Any?, value9: Any?) -> T? {
-	var total: UInt = 0
-	print("calling \(selector)")
-	if value1 is StopVariable {
-		total = 0
-	} else if value2 is StopVariable {
-		total = 1
-	} else if value3 is StopVariable {
-		total = 2
-	} else if value4 is StopVariable {
-		total = 3
-	} else if value5 is StopVariable {
-		total = 4
-	} else if value6 is StopVariable {
-		total = 5
-	} else if value7 is StopVariable {
-		total = 6
-	} else if value8 is StopVariable {
-		total = 7
-	} else if value9 is StopVariable {
-		total = 8
-	}
-	
-	let objectPtr = object._nsobjptr
-	
-	var value1Retainer = objc_convertFromSwift_toObjC(value: value1)
-	var value2Retainer = objc_convertFromSwift_toObjC(value: value2)
-	var value3Retainer = objc_convertFromSwift_toObjC(value: value3)
-	var value4Retainer = objc_convertFromSwift_toObjC(value: value4)
-	var value5Retainer = objc_convertFromSwift_toObjC(value: value5)
-	var value6Retainer = objc_convertFromSwift_toObjC(value: value6)
-	print("value1Retainer = \(value1Retainer)")
-	var value1Converted = value1
-	if let value1 = value1 as? NSObjectGNUStepSwiftBridge {
-		value1Converted = value1._nsobjptr
-	}
-	var value2Converted = value2
-	if let value2 = value2 as? NSObjectGNUStepSwiftBridge {
-		value2Converted = value2._nsobjptr
-	}
-	var value3Converted = value3
-	if let value3 = value3 as? NSObjectGNUStepSwiftBridge {
-		value3Converted = value3._nsobjptr
-	}
-	var value4Converted = value4
-	if let value4 = value4 as? NSObjectGNUStepSwiftBridge {
-		value4Converted = value4._nsobjptr
-	}
-	var value5Converted = value5
-	if let value5 = value5 as? NSObjectGNUStepSwiftBridge {
-		value5Converted = value5._nsobjptr
-	}
-	var value6Converted = value6
-	if let value6 = value6 as? NSObjectGNUStepSwiftBridge {
-		value6Converted = value6._nsobjptr
-	}
-	
-	var returnValue: id? = nil
-	if total == 0 {
-		
-		if T.self == NSObjectGNUStepSwiftBridge.self {
-			returnValue  = forSwift_objcSendMessage(&objectPtr!.pointee, sel_registerName(selector))
-			if let value =  objc_convertToSwift_NSObject(value: returnValue) as? T {
-				return value
-			}
-		} else {
-			//var retrunValue = UnsafeMutablePointer<T>.allocate(capacity: MemoryLayout<T>.size)
-			print("STRET calling a function with 0 argument")
-			var retrunValue = forSwift_objcMsgSend_stret(&objectPtr!.pointee, sel_registerName(selector))
-			print("STRET calling a function with 0 argument \(retrunValue)")
-			if let value: T =  objc_convertToSwift_ofType(value: returnValue) {
-				return value
-			}
-		}
-	}
-	
-	if total == 1 {
-		print("calling a function with one argument")
-		if T.self == NSObjectGNUStepSwiftBridge.self {
-			returnValue  = forSwift_objcSendMessage1(&objectPtr!.pointee, sel_registerName(selector), &value1Converted)
-			if let value =  objc_convertToSwift_NSObject(value: returnValue) as? T {
-				return value
-			}
-		} else {
-			print("STRET calling a function with one argument \(value1Converted!)")
-			//var retrunValue = UnsafeMutablePointer<T>.allocate(capacity: MemoryLayout<T>.size)
-			var retrunValue  = forSwift_objcMsgSend_stret1(&objectPtr!.pointee, sel_registerName(selector), &value1Converted!)
-			if let value: T =  objc_convertToSwift_ofType(value: returnValue) {
-				return value
-			}
-		}
-	}
-	
-	if returnValue == nil {
-		return nil
-	}
-	
-	return nil
-
-}
-
-open class NSObjectGNUStepSwiftBridge {
-	public var _nsobjptr: UnsafeMutablePointer<objc_object>? = nil
-	public var _nsclassName: String {
-		return "NSObject"
-	}
-	
-//	subscript<T>(dynamicMember member: String) -> T? {
-//			get {
-//				if let x: T = objc_smart_sendMessage(object: self, selector: member, value1: StopVariable(), value2: StopVariable(), value3: StopVariable(), value4: StopVariable(), value5: StopVariable(), value6: StopVariable(), value7: StopVariable(), value8: StopVariable(), value9: StopVariable()) {
-//					return x
-//				}
-//				return nil
-//			}
-////			set {
-////				guard let selfPtr = self._nsobjptr else {return}
-////				let p = Unmanaged.passUnretained(newValue).toOpaque()
-////				_ = forSwift_objcSendMessage1(&selfPtr.pointee, sel_registerName("set\(member)"), &p)
-////			}
-//		}
-//	}
-	
-	public init() {
-		
-	}
-	
-	public init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
-		self._nsobjptr = nsobjptr
-	}
-
-	deinit {
-		if var ptr = _nsobjptr {
-			_ = forSwift_objcSendMessage(&ptr.pointee, sel_registerName("release"))
-		}
-	}
-	
-	public func addMethod<T>(selector: String, block: T, types: String) {
-		guard var selfPtr = self._nsobjptr else {return}
-		guard let CLASS = object_getClass(selfPtr) else {return}
-		//print("registering :\(T.self)")
-		let imp = imp_implementationWithBlock(unsafeBitCast(block, to: id.self))
-		class_addMethod(CLASS, sel_registerName(selector),imp, types)
-	}
-	
-	
-}
-
-
-
-
-public class NSObjectClass {
-	public var _nsclassName: String
-	public var _nsobjptr: Class?
-	public init(name: String, superName: String?, create: (Class?) -> ()) {
-		self._nsclassName = name
-		var cName = name.cString
-		print("trying to create \(name)")
-		if let superName = superName, var nsClass =  objc_getClass(superName), let cls = object_getClass(nsClass) {
-			
-			//self._nsobjptr = objc_allocateClassPair(cls, name, 0)
-			
-			self._nsobjptr = smart_createNewClass(name, superName)
-			
-			print("Created \(name) subclass of \(superName)")
-		} else {
-			self._nsobjptr = objc_allocateClassPair(nil, &cName, 0)
-			print("Created \(name) subclass of nothing")
-		}
-		
-		if let ptr = self._nsobjptr {
-			create(ptr)
-			//https://stackoverflow.com/questions/33184826/what-does-class-addivars-alignment-do-in-objective-c
-			
-			class_addIvar(ptr, "___swiftPtr", MemoryLayout<UInt64>.size, UInt8(MemoryLayout<UInt64>.alignment), "@")
-			
-		}
-		
-		
-		
-		self.register()
-		
-		print(self._nsobjptr == nil ? "NIL!!!" : "NOT NIL :-)")
-		
-
-	}
-	
-	public init(class: Class, name: String) {
-		self._nsclassName = name
-		self._nsobjptr = `class`
-	}
-
-	public func register() {
-		
-		if var chars = class_getName(self._nsobjptr!) {
-			let name = String(cString: chars)
-			print("named: \(name)")
-		}
-		
-		
-		
-		print("registering class \(self._nsobjptr)")
-		objc_registerClassPair(self._nsobjptr!)
-		print("registered \(_nsclassName) but got \(objc_getClass(self._nsclassName)) after lookup")
-	}
-
-}
-///https://stackoverflow.com/questions/11319170/c-as-principal-class-or-a-cocoa-app-without-objc
-
-//@_cdecl("didFinishLaunchingForwarder")
-//func didFinishLaunchingForwarder(_ SELF: id,_ selector: SEL,_ argument1: id?) -> (UInt8) {
-//	print("HELLO WORLD!")
-//	return 0
-//}
-
-
-open class NSApplicationDelegate: NSObjectGNUStepSwiftBridge {
+open class NSApplicationDelegate: GNUStepNSObjectWrapper {
 	public override var _nsclassName: String {
 		return "NSApplicationDelegateForSwift"
 	}
@@ -336,7 +36,7 @@ open class NSApplicationDelegate: NSObjectGNUStepSwiftBridge {
 		
 	}
 
-	static var _objcClass = NSObjectClass(name: "NSApplicationDelegateForSwift", superName: "NSObject", create: { ptr in
+	static var _objcClass = GNUStepNSObjectSubclassConstructor(name: "NSApplicationDelegateForSwift", superName: "NSObject", create: { ptr in
 		var types = "i@:@"
 		let imp = imp_implementationWithBlock(unsafeBitCast(didFinishLaunchingIMP, to: id.self))
 		class_addMethod(ptr, sel_registerName("applicationDidFinishLaunching:"),imp, types)
@@ -360,7 +60,7 @@ open class NSApplicationDelegate: NSObjectGNUStepSwiftBridge {
 		var cast = Unmanaged.passUnretained(self).toOpaque()
 		smart_swift_setIvar(_nsobjptr: self._nsobjptr, name: "___swiftPtr", value: cast)
 
-		//self.addMethod(selector: "applicationDidFinishLaunching:", block: Self.didFinishLaunchingIMP, types: "i@:@")
+		self.addMethod(selector: "applicationDidFinishLaunching:", block: Self.didFinishLaunchingIMP, types: "i@:@")
 		
 		
 	}
@@ -387,7 +87,7 @@ open class UIView: NSView {
 	}
 	
 
-	static var _objcClass = NSObjectClass(name: "UIView", superName: "NSScrollView", create: { ptr in
+	static var _objcClass = GNUStepNSObjectSubclassConstructor(name: "UIView", superName: "NSScrollView", create: { ptr in
 		
 	})
 
@@ -437,7 +137,7 @@ open class UIView: NSView {
 }
 
 ///https://gnustep.github.io/resources/OpenStepSpec/ApplicationKit/Classes/NSColor.html
-public class NSColor: NSObjectGNUStepSwiftBridge {
+public class NSColor: GNUStepNSObjectWrapper {
 
 	public override var _nsclassName: String {
 		return "NSColor"
@@ -469,7 +169,7 @@ public class NSColor: NSObjectGNUStepSwiftBridge {
 
 
 
-public class NSString: NSObjectGNUStepSwiftBridge {
+public class NSString: GNUStepNSObjectWrapper {
 
 
 	public override var _nsclassName: String {
@@ -514,7 +214,7 @@ public class NSString: NSObjectGNUStepSwiftBridge {
 
 
 
-open class NSView: NSObjectGNUStepSwiftBridge {
+open class NSView: GNUStepNSObjectWrapper {
 	public override var _nsclassName: String {
 		return "NSView"
 	}
@@ -559,7 +259,7 @@ open class NSView: NSObjectGNUStepSwiftBridge {
 
 }
 
-public class NSWindow: NSObjectGNUStepSwiftBridge {
+public class NSWindow: GNUStepNSObjectWrapper {
 	
 	public override var _nsclassName: String {
 		return "NSWindow"
@@ -619,7 +319,7 @@ public class NSWindow: NSObjectGNUStepSwiftBridge {
 		}
 	}
 	public var subviews: [Any] = []
-	public func addSubview(_ subview: NSObjectGNUStepSwiftBridge) {
+	public func addSubview(_ subview: GNUStepNSObjectWrapper) {
 		subviews.append(subview)
 		guard let selfPtr = self._nsobjptr else {return}
 		var contentViewPtr =  forSwift_objcSendMessage(&selfPtr.pointee, sel_registerName("contentView"))
@@ -670,7 +370,7 @@ public class NSControl: NSView {
 
 public class NSButton: NSControl {
 	
-	static var _objcClass = NSObjectClass(name: "NSButtonForSwift", superName: "NSButton", create: { ptr in
+	static var _objcClass = GNUStepNSObjectSubclassConstructor(name: "NSButtonForSwift", superName: "NSButton", create: { ptr in
 
 	})
 	
