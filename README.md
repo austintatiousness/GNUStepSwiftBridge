@@ -57,7 +57,7 @@ sendRectFn = (NSRect(*)(id, SEL))objc_msgSend_stret;
 NSRect frame = sendRectFn(view, @selector(frame));
 ```
 
-Idea 1: THIS DOES NOT WORK. I really have no idea what I am doing. 
+Idea 1: THIS DOES NOT WORK. I really have no idea what I am doing. LOL
 ```
 void* forSwift_objcMsgSend_stret(id ID, SEL cmd, int64_t returnSize) {
 	printf("forSwift_objcMsgSend_stret\n");
@@ -68,6 +68,11 @@ void* forSwift_objcMsgSend_stret(id ID, SEL cmd, int64_t returnSize) {
 	return itemArr;
 }
 ```
+
+**Inspiration: 1 ** 
+This stackoverflow post suggests using `class_getMethodImplementation_stret`. 
+https://stackoverflow.com/questions/54002375/swift-runtime-calling-superclass-method
+
 
 What we need to be able to do is express this in Swift using 
 
