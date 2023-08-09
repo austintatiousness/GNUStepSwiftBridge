@@ -36,11 +36,6 @@ open class NSApplicationDelegate: GNUStepNSObjectWrapper {
 	static var didFinishLaunchingIMP: @convention(block) (UnsafeMutablePointer<objc_object>?,SEL,id?) -> (UInt8) = { first, second, third in
 		let SELF: NSApplicationDelegate? = smart_swift_lookupIvarWithType(_nsobjptr: first, name: "___swiftPtr")
 		SELF?.applicationDidFinishLaunching(notification: nil)
-//		let SELF = z!.load(as: NSApplicationDelegate.self)
-//		print(SELF.string)
-//		SELF.applicationDidFinishLaunching(notification: nil)
-//		
-
 		return 0
 	}
 	
@@ -250,10 +245,16 @@ open class NSView: GNUStepNSObjectWrapper {
 	
 	public var frame: CGRect {
 		get {
-			print("in frame.get")
+//			var imp:  (@convention(c) () -> (CGRect))? = objc_smart_getIMP_stret(object: self, selector: "frame")
+//			var rtn = imp!()
+
+			
+			//print("value \(imp?())")
 			if let x: CGRect = objc_smart_sendMessage(object: self, selector: "frame") {
+				print("SUCCESS getting frame")
 				return x
 			}
+			print("NO SUCCESS getting frame")
 			return .init(x: 0, y: 0, width: 0, height: 0)
 		}
 		set {
