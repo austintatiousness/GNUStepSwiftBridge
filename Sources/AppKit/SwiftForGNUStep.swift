@@ -34,6 +34,13 @@ public struct StopVariable {
 	}
 }
 
+public struct NilVariable {
+	static var single = NilVariable()
+	public init() {
+		
+	}
+}
+
 //This function takes the 'id' pointer, attempts to figure out what class it belongs to
 //then creates a new Swif object that wraps it.
 //There are a lot of questions to be solved here, like .. do we retain it again?
@@ -55,23 +62,34 @@ public func objc_convertToSwift_NSObject(value: id?) -> GNUStepNSObjectWrapper? 
 	return nil
 }
 
-public func objc_convertToSwift_ofType<T>(value: Any?) -> T? {
-	if var id = value {
-		return unsafeBitCast(value, to: T.self)
+public func objc_convertToSwift_ofType<T>(value: Any) -> T? {
+	
+	let bytesPointer = UnsafeMutableRawPointer.allocate(byteCount: MemoryLayout<T>.size, alignment: MemoryLayout<T>.alignment)
+	
+	if let v = value as? UnsafeMutablePointer<objc_object> {
+		let rt: T? = unsafeBitCast(v.pointee, to: T.self)
+		if var rt = rt {
+			return rt
+		}
+		return nil
+	}
+	let rt: T? = unsafeBitCast(value, to: T.self)
+	if var rt = rt {
+		return rt
 	}
 	return nil
 }
 
-public func objc_convertFromSwift_toObjC(value: Any?, typeHint: String? = nil) -> Any? {
+public func objc_convertFromSwift_toObjC(value: Any?, typeHint: String? = nil) -> Any {
 	if let value = value as? String {
 		return NSString(string: value)
 	} else if let value = value as? AnyObject {
 		return Unmanaged.passUnretained(value).toOpaque()
-	} else if var value = value as? Any {
+	} else if var value = value {
 		return value
 	}
 	
-	return value
+	return NilVariable.single
 }
 
 public func smart_swift_lookupIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String) -> UnsafeMutableRawPointer? {
@@ -97,10 +115,8 @@ public func smart_swift_lookupIvarWithType<T>(_nsobjptr: UnsafeMutablePointer<ob
 public func smart_swift_setIvar(_nsobjptr: UnsafeMutablePointer<objc_object>?, name: String, value: Any) {
 	if var ptr = _nsobjptr {
 		var value = value
-		//let ivar = class_getInstanceVariable(object_getClass(ptr), name)
 		_ = object_setInstanceVariable(ptr, name, &value)
 	}
-
 }
 
 public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: String) -> T? {
@@ -109,6 +125,20 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 
 public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: String,  value1: Any?) -> T? {
 	return objc_smart_sendMessage(object: object, selector: selector, value1: value1, value2: StopVariable(), value3: StopVariable(), value4: StopVariable(), value5: StopVariable(), value6: StopVariable(), value7: StopVariable(), value8: StopVariable(), value9: StopVariable())
+}
+
+public func objc_smart_getIMP<T>(object: GNUStepNSObjectWrapper, selector: String) -> T? {
+	let c = object_getClass(&object._nsobjptr!.pointee)
+	let v = class_getMethodImplementation(c, sel_getUid(selector))
+	let rt: T? = unsafeBitCast(v, to: T.self)
+	return rt
+}
+
+public func objc_smart_getIMP_stret<T>(object: GNUStepNSObjectWrapper, selector: String) -> T? {
+	let c = object_getClass(&object._nsobjptr!.pointee)
+	let v = class_getMethodImplementation_stret(c, sel_getUid(selector))
+	let rt: T? = unsafeBitCast(v, to: T.self)
+	return rt
 }
 
 public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: String,  value1: Any?, value2: Any?, value3: Any?, value4: Any?, value5: Any?, value6: Any?, value7: Any?, value8: Any?, value9: Any?) -> T? {
@@ -136,12 +166,12 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 	
 	let objectPtr = object._nsobjptr
 	
-	var value1Retainer = objc_convertFromSwift_toObjC(value: value1)
-	var value2Retainer = objc_convertFromSwift_toObjC(value: value2)
-	var value3Retainer = objc_convertFromSwift_toObjC(value: value3)
-	var value4Retainer = objc_convertFromSwift_toObjC(value: value4)
-	var value5Retainer = objc_convertFromSwift_toObjC(value: value5)
-	var value6Retainer = objc_convertFromSwift_toObjC(value: value6)
+	var value1Retainer: Any = objc_convertFromSwift_toObjC(value: value1)
+	var value2Retainer: Any = objc_convertFromSwift_toObjC(value: value2)
+	var value3Retainer: Any = objc_convertFromSwift_toObjC(value: value3)
+	var value4Retainer: Any = objc_convertFromSwift_toObjC(value: value4)
+	var value5Retainer: Any = objc_convertFromSwift_toObjC(value: value5)
+	var value6Retainer: Any = objc_convertFromSwift_toObjC(value: value6)
 	print("value1Retainer = \(value1Retainer)")
 	var value1Converted = value1
 	if let value1 = value1 as? GNUStepNSObjectWrapper {
@@ -170,19 +200,34 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 	
 	var returnValue: id? = nil
 	if total == 0 {
-		
+		print("calling total == 0 \(selector)")
 		if T.self == GNUStepNSObjectWrapper.self {
+			
+			
 			returnValue  = forSwift_objcSendMessage(&objectPtr!.pointee, sel_registerName(selector))
 			if let value =  objc_convertToSwift_NSObject(value: returnValue) as? T {
 				return value
 			}
 		} else {
+			print("needing to get a reult with the size \(Int64(MemoryLayout<T>.size))")
+//			var op = forSwift_objcSendMessage1ReturnAny(&objectPtr!.pointee, sel_registerName(selector))
+//
+//			let bytesPointer = UnsafeMutableRawPointer.allocate(byteCount: MemoryLayout<CGRect>.size, alignment: MemoryLayout<CGRect>.alignment)
+//			bytesPointer.copyMemory(from: &op, byteCount: MemoryLayout<CGRect>.size)
+//			
+//			print("TEST TEST TEST \(op!)")
 			//var retrunValue = UnsafeMutablePointer<T>.allocate(capacity: MemoryLayout<T>.size)
-			print("STRET calling a function with 0 argument")
-			var retrunValue = forSwift_objcMsgSend_stret(&objectPtr!.pointee, sel_registerName(selector))
-			print("STRET calling a function with 0 argument \(retrunValue)")
-			if let value: T =  objc_convertToSwift_ofType(value: returnValue) {
+			var returnValue  = forSwift_objcMsgSend_stret(&objectPtr!.pointee, sel_registerName(selector), Int64(MemoryLayout<T>.size))
+			
+			//var retrunValue: OpaquePointer = forSwift_objcMsgSend_stret(&objectPtr!.pointee, sel_registerName(selector))
+			//print("object.\(selector) = \(returnValue!) of type \(type(of: returnValue!))")
+			//let rrr: T? =  objc_convertToSwift_ofType(value: returnValue)
+			
+			if let value: T =  objc_convertToSwift_ofType(value: returnValue!) {
+				print("STRET for sure worked.")
 				return value
+			} else {
+				print("STRET coumd not be converted.")
 			}
 		}
 	}
