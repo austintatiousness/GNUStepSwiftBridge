@@ -38,16 +38,24 @@ void* getIvarPointer(id object, char const *name);
 
 char* forSwift_objcSendMessage_ReturnCString(id ID, SEL cmd);
 
+
 id forSwift_objcSendMessage(id ID, SEL cmd);
 id forSwift_objcSendMessage1(id ID, SEL cmd, void const *arg1);
 
+void* forSwift_objcSendMessage1ReturnAny(id ID, SEL cmd);
+
 id forSwift_objcSendMessage1ID(id ID, SEL cmd, id arg1);
+id forSwift_objcSendMessage1SEL(id ID, SEL cmd, SEL arg1);
 
 id forSwift_objcSendMessageCString(id ID, SEL cmd, const char* bytes);
 id forSwift_objcSendMessage2(id ID, SEL cmd, void const *arg1, void const *arg2);
 id forSwift_objcSendMessage3(id ID, SEL cmd, void const *arg1, void const *arg2, void const *arg3);
 id forSwift_objcSendMessage4(id ID, SEL cmd, void const *arg1, void const *arg2, void const *arg3, void const *arg4);
 
+
 id forSwift_objcSendMessage4Floats(id ID, SEL cmd, float arg1, float arg2, float arg3, float arg4);
 id initWithContentRect_styleMask_backing_defer(id ID, SEL cmd, NSRect arg1, NSUInteger arg2, NSUInteger arg3, char arg4);
 id forSwift_objcSendMessage1NSRect(id ID, SEL cmd, NSRect arg1);
+
+void* forSwift_objcMsgSend_stret(id ID, SEL cmd, int64_t returnSize);
+void* forSwift_objcMsgSend_stret1(id ID, SEL cmd, void const *arg1);
