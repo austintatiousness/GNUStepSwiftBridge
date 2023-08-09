@@ -37,11 +37,13 @@ What is the best way to store a table of the objects?
 
 # objc_msgSend and objc_msgSend_stret
 
-### objc_msgSend()
 objc_msgSend() is a c function used by the Objective-C runtime to send messages. Unfortunately it has a variable arguments which cannot be imported into Swift. To overcome this, I have created some specialized versions of of objc_msgSend that have different number of arguments. These can be found in the ObjCSwiftInterop.c file.
 
 Ultimately, I would like a swift version of this which more intelligently decides how to map the values. I started work on this, in the AppKit.swift file called ```func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String,  value1: Any?, value2: Any?, value3: Any?, value4: Any?, value5: Any?, value6: Any?, value7: Any?, value8: Any?, value9: Any?) -> T?```
-### background ###
+
+This solves the problem that we have to send messages of arbitrary side, but it does not solve the issues around casting, and that two separate functions `objc_msgSend` and `objc_msgSend_stret` depending on which type we are going to get back from.
+
+### CASTING ###
 
 Just some thoughts and notes: Please correct me where I am wrong or misunderstanding. 
 
