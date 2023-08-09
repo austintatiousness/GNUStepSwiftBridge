@@ -10,7 +10,8 @@
 #import "../../Headers/objc/encoding.h"
 #import "../../Headers/objc/objc-auto.h"
 #import "../../Headers/objc/hooks.h"
-
+#import "stdio.h"
+#import "stdlib.h"
 #import "../../Headers/objc/objc-visibility.h"
 
 Class smart_createNewClass(const char* name, const char* superName) {
@@ -26,7 +27,34 @@ void* getIvarPointer(id object, char const *name) {
 	return (uint8_t*)(void*)object + ivar_getOffset(ivar);
 }
 
+void* forSwift_objcMsgSend_stret(id ID, SEL cmd, int64_t returnSize) {
+	printf("forSwift_objcMsgSend_stret\n");
+	void* itemArr = malloc(returnSize);
+	void* (*sendRectFn)(id receiver, SEL operation);
+	sendRectFn = (void(*)(id, SEL))objc_msgSend_stret;
+	itemArr = sendRectFn(ID, cmd);
+	return itemArr;
+	/*
+	 This was inspired by this.
+	 
+	 UIView *view = [[NSView alloc] initWithFrame:NSRectZero];
+
+	 NSRect (*sendRectFn)(id receiver, SEL operation);
+	 sendRectFn = (NSRect(*)(id, SEL))objc_msgSend_stret;
+	 NSRect frame = sendRectFn(view, @selector(frame));
+	 
+	 */
+}
+
+void* forSwift_objcMsgSend_stret1(id ID, SEL cmd, void const *arg1) {
+	objc_msgSend_stret(ID, cmd, arg1);
+}
+
 id forSwift_objcSendMessage(id ID, SEL cmd) {
+    return objc_msgSend(ID, cmd);
+}
+
+void* forSwift_objcSendMessage1ReturnAny(id ID, SEL cmd) {
     return objc_msgSend(ID, cmd);
 }
 
@@ -40,6 +68,10 @@ id forSwift_objcSendMessage1(id ID, SEL cmd, void const *arg1) {
 }
 
 id forSwift_objcSendMessage1ID(id ID, SEL cmd, id arg1) {
+	return objc_msgSend(ID, cmd,  arg1);
+}
+
+id forSwift_objcSendMessage1SEL(id ID, SEL cmd, SEL arg1) {
 	return objc_msgSend(ID, cmd,  arg1);
 }
 
