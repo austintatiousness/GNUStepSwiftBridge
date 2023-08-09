@@ -57,6 +57,18 @@ sendRectFn = (NSRect(*)(id, SEL))objc_msgSend_stret;
 NSRect frame = sendRectFn(view, @selector(frame));
 ```
 
+Idea 1: THIS DOES NOT WORK. I really have no idea what I am doing. 
+```
+void* forSwift_objcMsgSend_stret(id ID, SEL cmd, int64_t returnSize) {
+	printf("forSwift_objcMsgSend_stret\n");
+	void* itemArr = malloc(returnSize);
+	void* (*sendRectFn)(id receiver, SEL operation);
+	sendRectFn = (void(*)(id, SEL))objc_msgSend_stret;
+	itemArr = sendRectFn(ID, cmd);
+	return itemArr;
+}
+```
+
 What we need to be able to do is express this in Swift using 
 
 I do not know how the `objc_msgSend_stret` knows what the returned data type should be. 
