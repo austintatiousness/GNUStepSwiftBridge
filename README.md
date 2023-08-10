@@ -9,7 +9,7 @@ IMPORTANT: This assumes that file system layout of Onflapp's GNUstep Desktop env
 I haven't yet figured out how to configure Swift to copy the files into the a folder called ```Resources``` within the same folder holds the built Swift executable. For now, just copy in the Resources folder into the .build/build/debug folder. 
 
 
-# Targets
+# NSObject Integration
 AppKit is a Swif tlibrary that wraps GNUStep's gui library. 
 HelloWorld is my playground. It is often not working. 
 NSWindowTest is to strictly test the code that creates NSWindow. It runs well!
