@@ -14,7 +14,7 @@ AppKit is a Swif tlibrary that wraps GNUStep's gui library.
 HelloWorld is my playground. It is often not working. 
 NSWindowTest is to strictly test the code that creates NSWindow. It runs well!
 
-# NOTES, ISSUES, IDEAS
+
 
 ### class GNUStepNSObjectWrapper
 This is a class written in Swfit that is responsible to instantiate GNUStep ObjC classes. When it instantiates a new NSObject, it always calls retain. If it is just wrapping a alreday made pointer, currently it does not call retain. 
@@ -23,6 +23,7 @@ If you intend to wrap a new subclass of an existing NSObject, Objective-C object
 
 ### class GNUStepNSObjectSubclassConstructor
 This class is responsible for adding new objects to the GNUStep ObjC runtime. Every new object that it creates gets an additional Ivar called ```___swiftPtr``` that hols a pointer to the Swift object that it wraps.
+
 
 ### retain and release
 Currently, I have a class called ```GNUStepNSObjectWrapper``` that holds a reference to a NSObject in the GNUStep ObjC runtime. This object retains any NSObjects that is creates. However, we may get that same object back in the form of an ```id``` from the GNUStep ObjC2 runtime via a call to ```objc_msgSend``` or ```smart_swift_lookupIvar```. 
@@ -34,6 +35,31 @@ How do we manage retains?
 
 **Question 2**
 What is the best way to store a table of the objects?
+
+# calling methods
+One of the major issues that I faced was getting `objc_msgSend` and `objc_msgSend_stret` to play nicely. Each of these functions are used to send messages (call methods) of an Objective-C object. Unfortunatley, I never got that working right, instead, I implemented a funciton `objc_smart_getIMP` which calls `class_getMethodImplementation`. The term 'smart' here just means that I am making the function swiftier, and it helps do lookup and casting for me. There are two version of this function
+
+```
+public func objc_smart_getIMP<T>(object: GNUStepNSObjectWrapper, selector: String) -> T? {
+	let c = object_getClass(&object._nsobjptr!.pointee)
+	let v = class_getMethodImplementation(c, sel_getUid(selector))
+	let rt: T? = unsafeBitCast(v, to: T.self)
+	return rt
+}
+
+public func objc_smart_getIMP<T>(id: GNUStepNSObjectPointer, selector: String) -> T? {
+	var id = id
+	let c = object_getClass(id)
+	let v = class_getMethodImplementation(c, sel_getUid(selector))
+	let rt: T? = unsafeBitCast(v, to: T.self)
+	return rt
+}
+```
+
+https://theswiftdev.com/how-to-use-a-swift-library-in-c/
+
+
+# THE FOLLOWING IS MOSTLY SOLVED (SEE ABOVE)
 
 # objc_msgSend and objc_msgSend_stret
 
