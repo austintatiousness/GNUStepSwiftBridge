@@ -36,8 +36,8 @@ How do we manage retains?
 **Question 2**
 What is the best way to store a table of the objects?
 
-# calling methods
-One of the major issues that I faced was getting `objc_msgSend` and `objc_msgSend_stret` to play nicely. Each of these functions are used to send messages (call methods) of an Objective-C object. Unfortunatley, I never got that working right, instead, I implemented a funciton `objc_smart_getIMP` which calls `class_getMethodImplementation`. The term 'smart' here just means that I am making the function swiftier, and it helps do lookup and casting for me. There are two version of this function
+# Calling Objective-C Methods From Swift
+One of the major issues that I faced was getting `objc_msgSend` and `objc_msgSend_stret` to play nicely with swift. Each of these functions are used to send messages (call methods) of an Objective-C object. Unfortunatley, I never got that working right, instead, I implemented a funciton `objc_smart_getIMP` which calls `class_getMethodImplementation`. The term 'smart' here just means that I am making the function swiftier, and it helps do lookup and casting for me. There are two version of this function
 
 ```
 public func objc_smart_getIMP<T>(object: GNUStepNSObjectWrapper, selector: String) -> T? {
@@ -55,6 +55,12 @@ public func objc_smart_getIMP<T>(id: GNUStepNSObjectPointer, selector: String) -
 	return rt
 }
 ```
+
+# Pure Swift Objects Corssing Into Objective-C (NSSwiftObjectWrapper?)
+
+Classes like NSArray and NSDictionary suffer from only being able to store NSObjects. It may be nice to be able to put Swift objects into these arrays. We would  need to wrap them into something in order to do this. 
+
+An NSSwiftObject wrapper type could be introduced which can hold a pointer back to the original Swift object; however, would need to manage retaining any Swift reference types. Some ideas are presented here. In this blog that may help us construct this. It would be nice if this was a part of the GNUStep's Foundation. 
 
 https://theswiftdev.com/how-to-use-a-swift-library-in-c/
 
