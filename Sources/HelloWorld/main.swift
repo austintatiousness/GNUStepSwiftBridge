@@ -14,6 +14,7 @@ class AppDelegate: NSApplicationDelegate {
 	lazy var button = NSButton()
 	lazy var imageView = NSImageView()
 	lazy var button2 = NSButton()
+	lazy var button3 = NSButton()
 	lazy var newWindowButton = NSButton()
 	lazy var textField = NSTextField()
 	lazy var image = NSImage.image(named: "Terminal.tiff")
@@ -23,32 +24,40 @@ class AppDelegate: NSApplicationDelegate {
 		window.orderFront(sender: self)
 
 		newWindowButton.setTitle(NSString(string: "Show Window"))
-		newWindowButton.frame = .init(x: 10, y: 60, width: 100, height: 22)
+		newWindowButton.frame = .init(x: 10, y: 22, width: 100, height: 32)
 		newWindowButton.onAction = { button in
 			self.newWindow.orderFront(sender: self)
 			self.newWindow.setBackgroundColor(.purple)
 		}
 		view.addSubview(newWindowButton)
 		
-		imageView.frame = .init(x: 0, y: 0, width: 32, height: 32)
+		imageView.frame = .init(x: 340, y: 22, width: 32, height: 32)
 		imageView.setImage(self.image!)
 		view.addSubview(imageView)
 		
-		button.setTitle(NSString(string: ""))
-		button.setImage(image!)
-		button.frame = .init(x: 120, y: 60, width: 100, height: 22)
+		button.setTitle(NSString(string: "Get Frame"))
+		button.frame = .init(x: 120, y: 22, width: 100, height: 32)
 		button.onAction = { button in
 			self.textField.stringValue = "\(self.view.frame)"
 		}
 		view.addSubview(button)
 		
 		button2.setTitle(NSString(string: "Set Other Window"))
-		button2.frame = .init(x: 230, y: 60, width: 100, height: 22)
+		button2.frame = .init(x: 230, y: 22, width: 100, height: 32)
 		button2.onAction = { button in
 			//self.view.frame = .init(x: 0, y: 32, width: 300, height: 300)
 			self.newWindow.setBackgroundColor(.black)
 		}
 		view.addSubview(button2)
+		
+		
+		button3.setImage(image!)
+		button3.frame = .init(x: 430, y: 22, width: 100, height: 32)
+		button3.onAction = { button in
+			//self.view.frame = .init(x: 0, y: 32, width: 300, height: 300)
+			self.newWindow.setBackgroundColor(.black)
+		}
+		view.addSubview(button3)
 		
 		
 		self.textField.setBackgroundColor(.clear)
@@ -58,14 +67,15 @@ class AppDelegate: NSApplicationDelegate {
 		self.textField.drawsBackground = false
 		
 		self.textField.frame = CGRect(x: 10, y: 100, width: 300, height: 32)
-		self.textField.setText(NSString(string: "Unknown Frame"))
+		self.textField.text = "Click 'Get Frame'"
 		self.textField.font = .boldSystemFontOfSize(size: 30)
 		view.addSubview(textField)
 
 
 		textField2.frame = CGRect(x: 10, y: 140, width: 300, height: 32)
-		textField2.setText(NSString(string: "Text"))
-		self.textField2.setBackgroundColor(.blue)
+		self.textField2.text = "Some Cool Text"
+		self.textField2.textColor = .white
+		self.textField2.setBackgroundColor(.grey)
 		view.addSubview(textField2)
 		
 		view.setBackgroundColor(.init(red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0))
