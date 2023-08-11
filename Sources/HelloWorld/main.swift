@@ -30,20 +30,20 @@ class AppDelegate: NSApplicationDelegate {
 		}
 		view.addSubview(newWindowButton)
 		
-		imageView.setFrame(.init(x: 0, y: 0, width: 32, height: 32))
+		imageView.frame = .init(x: 0, y: 0, width: 32, height: 32)
 		imageView.setImage(self.image!)
 		view.addSubview(imageView)
 		
 		button.setTitle(NSString(string: ""))
 		button.setImage(image!)
-		button.setFrame(.init(x: 120, y: 60, width: 100, height: 22))
+		button.frame = .init(x: 120, y: 60, width: 100, height: 22)
 		button.onAction = { button in
 			self.textField.stringValue = "\(self.view.frame)"
 		}
 		view.addSubview(button)
 		
 		button2.setTitle(NSString(string: "Set Other Window"))
-		button2.setFrame(.init(x: 230, y: 60, width: 100, height: 22))
+		button2.frame = .init(x: 230, y: 60, width: 100, height: 22)
 		button2.onAction = { button in
 			//self.view.frame = .init(x: 0, y: 32, width: 300, height: 300)
 			self.newWindow.setBackgroundColor(.black)
