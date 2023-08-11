@@ -33,10 +33,8 @@ open class NSArray: GNUStepNSObjectWrapper {
 		}
 	}
 
-	public override init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
-		super.init()
-		self._nsobjptr = nsobjptr
-		var initalizedObject = forSwift_objcSendMessage(&nsobjptr!.pointee, sel_registerName("retain"))
+	public required init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
+		super.init(nsobjptr: nsobjptr)
 	}
 }
 
@@ -48,6 +46,10 @@ open class NSMutableArray: NSArray {
 	public override init(array: Array<Any>) {
 		super.init(array: array)
 	}
+	
+	public required init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
+		super.init(nsobjptr: nsobjptr)
+	}
 }
 
 open class NSTask: GNUStepNSObjectWrapper {
@@ -56,10 +58,8 @@ open class NSTask: GNUStepNSObjectWrapper {
 	}
 	
 
-	public override init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
-		super.init()
-		self._nsobjptr = nsobjptr
-		var initalizedObject = forSwift_objcSendMessage(&nsobjptr!.pointee, sel_registerName("retain"))
+	public required init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
+		super.init(nsobjptr: nsobjptr)
 	}
 	
 	
@@ -93,10 +93,8 @@ public class NSString: GNUStepNSObjectWrapper {
 		}
 	}
 	
-	public override init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
-		super.init()
-		self._nsobjptr = nsobjptr
-		var initalizedObject = forSwift_objcSendMessage(&nsobjptr!.pointee, sel_registerName("retain"))
+	public override required init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
+		super.init(nsobjptr: nsobjptr)
 	}
 	
 //	deinit {
@@ -105,6 +103,15 @@ public class NSString: GNUStepNSObjectWrapper {
 //		}
 //	}
 //
-	
-	
+		
+}
+
+extension String: GNUStepNSObjectConvertable {
+	var nsobject: GNUStepNSObjectWrapper {return NSString(string: self)}
+	static func from(gnuStepWrapper: GNUStepNSObjectWrapper) -> Any {
+		if let gnuStepWrapper = gnuStepWrapper as? NSString {
+			return gnuStepWrapper.string
+		}
+		return ""
+	}
 }
