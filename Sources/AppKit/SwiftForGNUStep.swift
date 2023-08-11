@@ -51,10 +51,11 @@ public func objc_convertToSwift_NSObject(value: id?) -> GNUStepNSObjectWrapper? 
 		if let value = value  {
 			let string = String(cString: value)
 
-			if string == "GSTinyString" || string == "GSCBufferString" {
+			if string == "GSTinyString" || string == "GSCBufferString" || string == "NSString" {
 				let rtn = NSString(nsobjptr: &id.pointee)
-				let s = rtn.string
 				return rtn
+			} else if let type = GNUStepObjC.registeredClasses[string].self {
+				return type.init(nsobjptr: &id.pointee)
 			} else {
 				print("unknown type \(string)")
 			}
@@ -283,12 +284,78 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 	return nil
 
 }
+
+func convertGetterToSetter(_ string: String) -> String {
+	if string.count > 0 {
+		let first = "\(string.first!)".uppercased()
+		return "set\(first)\(string.dropFirst()):"
+	} else {
+		return string
+	}
+}
+	
+protocol GNUStepNSObjectConvertable {
+	var nsobject: GNUStepNSObjectWrapper {get}
+	static func from(gnuStepWrapper: GNUStepNSObjectWrapper) -> Any
+}
+
+
 ///This is used to wrap
+@dynamicMemberLookup
 open class GNUStepNSObjectWrapper {
 	public var _nsobjptr: GNUStepNSObjectPointer? = nil
 	public var _nsclassName: String {
 		return "NSObject"
 	}
+	
+	
+	public subscript<T>(dynamicMember member: String) -> T? {
+		
+		get {
+			if T.self == GNUStepNSObjectWrapper.self {
+				var imp:  (@convention(c) (id, SEL) -> (id))? = objc_smart_getIMP(object: self, selector: member)
+				if let rtn = imp?(&self._nsobjptr!.pointee, sel_getUid(member)) {
+					if let rtn = objc_convertToSwift_NSObject(value: rtn) as? T {
+						return rtn
+					}
+				}
+			} else if let Type = T.self as? GNUStepNSObjectConvertable.Type {
+				var imp:  (@convention(c) (id, SEL) -> (id))? = objc_smart_getIMP(object: self, selector: member)
+				if let rtn = imp?(&self._nsobjptr!.pointee, sel_getUid(member)) {
+					if let rtn = objc_convertToSwift_NSObject(value: rtn) {
+						return Type.from(gnuStepWrapper: rtn) as? T
+					}
+				}
+			} else if T.self == Int.self {
+				var imp:  (@convention(c) (id, SEL) -> (Int))? = objc_smart_getIMP(object: self, selector: member)
+				if let rtn = imp?(&self._nsobjptr!.pointee, sel_getUid(member)) {
+					return rtn as? T
+				}
+			}
+			return nil
+		}
+		
+		set {
+			guard var selfPtr = self._nsobjptr else {return}
+			if let ns = newValue as? GNUStepNSObjectWrapper {
+				guard var stringPTR = ns._nsobjptr else {return}
+				var imp:  (@convention(c) (id, SEL, id) -> (Void))? = objc_smart_getIMP(object: self, selector: convertGetterToSetter(member))
+				let rtn = imp?(&selfPtr.pointee, sel_getUid(convertGetterToSetter(member)), &stringPTR.pointee)
+			} else if let nv = newValue as? GNUStepNSObjectConvertable {
+				let ns = nv.nsobject
+				guard var stringPTR = ns._nsobjptr else {return}
+				var imp:  (@convention(c) (id, SEL, id) -> (Void))? = objc_smart_getIMP(object: self, selector: convertGetterToSetter(member))
+				let rtn = imp?(&selfPtr.pointee, sel_getUid(convertGetterToSetter(member)), &stringPTR.pointee)
+			} else if let ns = newValue as? Int {
+				var imp:  (@convention(c) (id, SEL, Int) -> (Void))? = objc_smart_getIMP(object: self, selector: convertGetterToSetter(member))
+				let rtn = imp?(&selfPtr.pointee, sel_getUid(convertGetterToSetter(member)), ns)
+			} else if let ns = newValue as? CGRect {
+				var imp:  (@convention(c) (id, SEL, CGRect) -> (Void))? = objc_smart_getIMP(object: self, selector: convertGetterToSetter(member))
+				let rtn = imp?(&selfPtr.pointee, sel_getUid(convertGetterToSetter(member)), ns)
+			}
+		}
+	}
+	
 	
 //	subscript<T>(dynamicMember member: String) -> T? {
 //			get {
@@ -309,8 +376,9 @@ open class GNUStepNSObjectWrapper {
 		
 	}
 	
-	public init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
+	public required init(nsobjptr: UnsafeMutablePointer<objc_object>?) {
 		self._nsobjptr = nsobjptr
+		var initalizedObject = forSwift_objcSendMessage(&nsobjptr!.pointee, sel_registerName("retain"))
 	}
 
 	deinit {
