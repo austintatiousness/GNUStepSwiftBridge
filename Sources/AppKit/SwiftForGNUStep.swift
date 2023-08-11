@@ -18,6 +18,7 @@ import ObjCSwiftInterop
 import ObjectiveC
 #endif
 
+public typealias GNUStepNSObjectPointer = UnsafeMutablePointer<objc_object>
 
 public class GNUStepObjC {
 	//the key is the name of the class (e.g "NSView") and the value is the type
@@ -83,8 +84,6 @@ public func objc_convertToSwift_ofType<T>(value: Any) -> T? {
 public func objc_convertFromSwift_toObjC(value: Any?, typeHint: String? = nil) -> Any {
 	if let value = value as? String {
 		return NSString(string: value)
-	} else if let value = value as? AnyObject {
-		return Unmanaged.passUnretained(value).toOpaque()
 	} else if var value = value {
 		return value
 	}
@@ -134,6 +133,26 @@ public func objc_smart_getIMP<T>(object: GNUStepNSObjectWrapper, selector: Strin
 	return rt
 }
 
+public func objc_smart_getIMP<T>(id: GNUStepNSObjectPointer, selector: String) -> T? {
+	var id = id
+	let c = object_getClass(id)
+	let v = class_getMethodImplementation(c, sel_getUid(selector))
+	let rt: T? = unsafeBitCast(v, to: T.self)
+	return rt
+}
+
+public func objc_smart_getClassIMP<T>(class: Class, selector: String) -> T? {
+	let v = method_getImplementation(class_getClassMethod(`class`, sel_getUid(selector)))
+	let rt: T? = unsafeBitCast(v, to: T.self)
+	return rt
+}
+
+///This cannot work because ReturnType is not guaranteed to be a C type or a Pointer
+//public func objc_call_IMP1<ReturnType: Any>(object: GNUStepNSObjectWrapper, selector: String) -> ReturnType {
+//	let rt: (@convention(c) (id, SEL) -> (ReturnType))? = objc_smart_getIMP(object: object, selector: selector)
+//	return rt!(&object._nsobjptr!.pointee, sel_getUid(selector))!
+//}
+
 public func objc_smart_getIMP_stret<T>(object: GNUStepNSObjectWrapper, selector: String) -> T? {
 	let c = object_getClass(&object._nsobjptr!.pointee)
 	let v = class_getMethodImplementation_stret(c, sel_getUid(selector))
@@ -167,15 +186,15 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 	let objectPtr = object._nsobjptr
 	
 	var value1Retainer: Any = objc_convertFromSwift_toObjC(value: value1)
+	var value1Ptr: UnsafeMutablePointer<objc_object>? = nil
 	var value2Retainer: Any = objc_convertFromSwift_toObjC(value: value2)
 	var value3Retainer: Any = objc_convertFromSwift_toObjC(value: value3)
 	var value4Retainer: Any = objc_convertFromSwift_toObjC(value: value4)
 	var value5Retainer: Any = objc_convertFromSwift_toObjC(value: value5)
 	var value6Retainer: Any = objc_convertFromSwift_toObjC(value: value6)
-	print("value1Retainer = \(value1Retainer)")
 	var value1Converted = value1
 	if let value1 = value1 as? GNUStepNSObjectWrapper {
-		value1Converted = value1._nsobjptr
+		value1Ptr = value1._nsobjptr
 	}
 	var value2Converted = value2
 	if let value2 = value2 as? GNUStepNSObjectWrapper {
@@ -200,7 +219,6 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 	
 	var returnValue: id? = nil
 	if total == 0 {
-		print("calling total == 0 \(selector)")
 		if T.self == GNUStepNSObjectWrapper.self {
 			
 			
@@ -209,20 +227,8 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 				return value
 			}
 		} else {
-			print("needing to get a reult with the size \(Int64(MemoryLayout<T>.size))")
-//			var op = forSwift_objcSendMessage1ReturnAny(&objectPtr!.pointee, sel_registerName(selector))
-//
-//			let bytesPointer = UnsafeMutableRawPointer.allocate(byteCount: MemoryLayout<CGRect>.size, alignment: MemoryLayout<CGRect>.alignment)
-//			bytesPointer.copyMemory(from: &op, byteCount: MemoryLayout<CGRect>.size)
-//			
-//			print("TEST TEST TEST \(op!)")
-			//var retrunValue = UnsafeMutablePointer<T>.allocate(capacity: MemoryLayout<T>.size)
 			var returnValue  = forSwift_objcMsgSend_stret(&objectPtr!.pointee, sel_registerName(selector), Int64(MemoryLayout<T>.size))
-			
-			//var retrunValue: OpaquePointer = forSwift_objcMsgSend_stret(&objectPtr!.pointee, sel_registerName(selector))
-			//print("object.\(selector) = \(returnValue!) of type \(type(of: returnValue!))")
-			//let rrr: T? =  objc_convertToSwift_ofType(value: returnValue)
-			
+
 			if let value: T =  objc_convertToSwift_ofType(value: returnValue!) {
 				print("STRET for sure worked.")
 				return value
@@ -235,17 +241,38 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 	if total == 1 {
 		print("calling a function with one argument")
 		if T.self == GNUStepNSObjectWrapper.self {
-			returnValue  = forSwift_objcSendMessage1(&objectPtr!.pointee, sel_registerName(selector), &value1Converted)
+			if var value1Ptr = value1Ptr {
+				returnValue  = forSwift_objcSendMessage1(&objectPtr!.pointee, sel_registerName(selector), &value1Ptr.pointee)
+			} else {
+				returnValue  = forSwift_objcSendMessage1(&objectPtr!.pointee, sel_registerName(selector), &value1Converted)
+			}
+			
 			if let value =  objc_convertToSwift_NSObject(value: returnValue) as? T {
 				return value
 			}
 		} else {
 			print("STRET calling a function with one argument \(value1Converted!)")
-			//var retrunValue = UnsafeMutablePointer<T>.allocate(capacity: MemoryLayout<T>.size)
-			var retrunValue  = forSwift_objcMsgSend_stret1(&objectPtr!.pointee, sel_registerName(selector), &value1Converted!)
-			if let value: T =  objc_convertToSwift_ofType(value: returnValue) {
-				return value
+			
+			if var value1Ptr = value1Ptr {
+				var returnValue  = forSwift_objcMsgSend_stret1(&objectPtr!.pointee, sel_registerName(selector), &value1Ptr.pointee)
+				
+				if let value: T =  objc_convertToSwift_ofType(value: returnValue) {
+					return value
+				}
+				
+			} else {
+				var returnValue  = forSwift_objcMsgSend_stret1(&objectPtr!.pointee, sel_registerName(selector), &value1Converted)
+				
+				if let value: T =  objc_convertToSwift_ofType(value: returnValue) {
+					return value
+				}
+				
 			}
+			
+			//var retrunValue  = forSwift_objcMsgSend_stret1(&objectPtr!.pointee, sel_registerName(selector), &value1Converted!)
+			//if let value: T =  objc_convertToSwift_ofType(value: returnValue) {
+			//	return value
+			//}
 		}
 	}
 	
@@ -258,7 +285,7 @@ public func objc_smart_sendMessage<T>(object: GNUStepNSObjectWrapper, selector: 
 }
 ///This is used to wrap
 open class GNUStepNSObjectWrapper {
-	public var _nsobjptr: UnsafeMutablePointer<objc_object>? = nil
+	public var _nsobjptr: GNUStepNSObjectPointer? = nil
 	public var _nsclassName: String {
 		return "NSObject"
 	}
@@ -298,6 +325,16 @@ open class GNUStepNSObjectWrapper {
 		//print("registering :\(T.self)")
 		let imp = imp_implementationWithBlock(unsafeBitCast(block, to: id.self))
 		class_addMethod(CLASS, sel_registerName(selector),imp, types)
+	}
+	
+	func retain() {
+		var imp:  (@convention(c) (id, SEL) -> (Void))? = objc_smart_getIMP(object: self, selector: "retain")
+		let rtn = imp?(&self._nsobjptr!.pointee, sel_getUid("retain"))
+	}
+		
+	func release() {
+		var imp:  (@convention(c) (id, SEL) -> (Void))? = objc_smart_getIMP(object: self, selector: "release")
+		let rtn = imp?(&self._nsobjptr!.pointee, sel_getUid("release"))
 	}
 	
 	
