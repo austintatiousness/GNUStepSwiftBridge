@@ -10,14 +10,14 @@ I haven't yet figured out how to configure Swift to copy the files into the a fo
 
 
 # NSObject Integration
-AppKit is a Swif tlibrary that wraps GNUStep's gui library. 
+AppKit is a Swift library that wraps GNUStep's GUI library. 
 HelloWorld is my playground. It is often not working. 
 NSWindowTest is to strictly test the code that creates NSWindow. It runs well!
 
 
 
 ### class GNUStepNSObjectWrapper
-This is a class written in Swfit that is responsible to instantiate GNUStep ObjC classes. When it instantiates a new NSObject, it always calls retain. If it is just wrapping a alreday made pointer, currently it does not call retain. 
+This is a class written in Swift that is responsible to instantiate GNUStep ObjC classes. When it instantiates a new NSObject, it always calls retain. If it is just wrapping a already made pointer, currently it does not call retain. 
 
 If you intend to wrap a new subclass of an existing NSObject, Objective-C object, then you need to implement ```GNUStepNSObjectSubclassConstructor``` first, then you can wrap that subclass.
 
@@ -26,9 +26,9 @@ This class is responsible for adding new objects to the GNUStep ObjC runtime. Ev
 
 
 ### retain and release
-Currently, I have a class called ```GNUStepNSObjectWrapper``` that holds a reference to a NSObject in the GNUStep ObjC runtime. This object retains any NSObjects that is creates. However, we may get that same object back in the form of an ```id``` from the GNUStep ObjC2 runtime via a call to ```objc_msgSend``` or ```smart_swift_lookupIvar```. 
+Currently, I have a class called ```GNUStepNSObjectWrapper``` that holds a reference to a NSObject in the GNUStep ObjC runtime. This object retains any NSObjects that it creates. However, we may get that same object back in the form of an ```id``` from the GNUStep ObjC2 runtime via a call to ```objc_msgSend``` or ```smart_swift_lookupIvar```. 
 
-When we recieve that object we either have to (a) construct a new wrapper calss. This is easy, we can just call ```object_getClassName()``` and use the retrieved name to map it to a Swift class that will wrap that ```id``` or (b) we can take the ```id``` value and look up a Swift object that was already instantiated and wraps it. 
+When we reveive that object we either have to (a) construct a new wrapper class. This is easy, we can just call ```object_getClassName()``` and use the retrieved name to map it to a Swift class that will wrap that ```id``` or (b) we can take the ```id``` value and look up a Swift object that was already instantiated and wraps it. 
 
 **Question 1:**
 How do we manage retains? 
@@ -37,7 +37,7 @@ How do we manage retains?
 What is the best way to store a table of the objects?
 
 # Calling Objective-C Methods From Swift
-One of the major issues that I faced was getting `objc_msgSend` and `objc_msgSend_stret` to play nicely with swift. Each of these functions are used to send messages (call methods) of an Objective-C object. Unfortunatley, I never got that working right, instead, I implemented a funciton `objc_smart_getIMP` which calls `class_getMethodImplementation`. The term 'smart' here just means that I am making the function swiftier, and it helps do lookup and casting for me. There are two version of this function
+One of the major issues that I faced was getting `objc_msgSend` and `objc_msgSend_stret` to play nicely with swift. Each of these functions are used to send messages (call methods) of an Objective-C object. Unfortunatley, I never got that working right, instead, I implemented a function `objc_smart_getIMP` which calls `class_getMethodImplementation`. The term 'smart' here just means that I am making the function swiftier, and it helps do lookup and casting for me. There are two version of this function
 
 ```
 public func objc_smart_getIMP<T>(object: GNUStepNSObjectWrapper, selector: String) -> T? {
@@ -69,7 +69,7 @@ https://theswiftdev.com/how-to-use-a-swift-library-in-c/
 
 # objc_msgSend and objc_msgSend_stret
 
-objc_msgSend() is a c function used by the Objective-C runtime to send messages. Unfortunately it has a variable arguments which cannot be imported into Swift. To overcome this, I have created some specialized versions of of objc_msgSend that have different number of arguments. These can be found in the ObjCSwiftInterop.c file.
+objc_msgSend() is a c function used by the Objective-C runtime to send messages. Unfortunately it has a variable arguments which cannot be imported into Swift. To overcome this, I have created some specialized versions of objc_msgSend that have different number of arguments. These can be found in the ObjCSwiftInterop.c file.
 
 Ultimately, I would like a swift version of this which more intelligently decides how to map the values. I started work on this, in the AppKit.swift file called ```func objc_smart_sendMessage<T>(object: NSObjectGNUStepSwiftBridge, selector: String,  value1: Any?, value2: Any?, value3: Any?, value4: Any?, value5: Any?, value6: Any?, value7: Any?, value8: Any?, value9: Any?) -> T?```
 
